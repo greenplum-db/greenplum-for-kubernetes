@@ -1,0 +1,25 @@
+linters:
+  enable:
+    - golint
+    - govet
+    - varcheck
+    - gofmt
+    - goimports
+  enable-all: false
+  disable-all: true
+  fast: false
+
+issues:
+  # List of regexps of issue texts to exclude, empty list by default.
+  # But independently from this option we use default exclude patterns,
+  # it can be disabled by `exclude-use-default: false`. To list all
+  # excluded by default patterns execute `golangci-lint run --help`
+  exclude:
+    - "should have comment"
+    - "comment on exported"
+    - "should not use dot imports"
+    - "don't use ALL_CAPS in Go names; use CamelCase"
+    - "and that stutters"
+    - "don't use MixedCaps in package name"
+skip-dirs:
+  - vendor

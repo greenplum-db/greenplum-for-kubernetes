@@ -1,0 +1,8 @@
+other:plcontainer:3.0.0-beta:
+  name: 'plcontainer'
+  version: '3.0.0-beta'
+  repository: 'Other'
+  license: 'BSD-3'
+  url: 'https://github.com/greenplum-db/plcontainer/archive/3.0.0-beta.tar.gz'
+  other-distribution: 'plcontainer-3.0.0-beta.tar.gz'
+  interactions: ['Distributed - Dynamic Link w/ OSS']

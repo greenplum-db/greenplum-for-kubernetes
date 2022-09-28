@@ -1,0 +1,23 @@
+# install build dependencies
+apt-get update && apt-get install build-essential fakeroot devscripts equivs
+
+# unpackage and enter source code directory
+tar -xzf <package-version>.tar.gz
+cd <package-version>
+tar -xf <package-version>.tar.xz
+
+# if there is a <package-version>.debian.tar.xz
+tar -xf <package-version>.debian.tar.xz
+mv debian <package-version>
+
+# once you have the debian directory, move inside
+cd <package-version>
+
+# apply any necessary patches
+patch -p1 < SomePackagePatch.patch
+
+# install package dependencies and create package
+mk-build-deps
+
+# move final package
+mv <package-version>.deb ../..

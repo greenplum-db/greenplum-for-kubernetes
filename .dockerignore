@@ -1,0 +1,9 @@
+**/Dockerfile
+.idea/
+*.iml
+vendor/
+greenplum-instance/cmd/sshKeyScan/sshKeyScan
+greenplum-operator/cmd/greenplumOperator/greenplumOperator
+# releases
+greenplum-for-kubernetes-*
+

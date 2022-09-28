@@ -1,0 +1,8 @@
+other:gpbackup:1.19.0:
+  name: 'gpbackup'
+  version: '1.19.0'
+  repository: 'Other'
+  license: 'Apache2.0'
+  url: 'https://github.com/greenplum-db/gpbackup/archive/1.19.0.tar.gz'
+  other-distribution: 'gpbackup-1.19.0.tar.gz'
+  interactions: ['Distributed - No Linking']

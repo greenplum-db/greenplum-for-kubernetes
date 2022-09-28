@@ -1,0 +1,4 @@
+greenplum-operator has been installed.
+
+Please see documentation at:
+http://greenplum-kubernetes.docs.pivotal.io/

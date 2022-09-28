@@ -1,0 +1,114 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.9
+  creationTimestamp: null
+  name: greenplumpxfservices.greenplum.pivotal.io
+spec:
+  group: greenplum.pivotal.io
+  names:
+    categories:
+    - all
+    kind: GreenplumPXFService
+    listKind: GreenplumPXFServiceList
+    plural: greenplumpxfservices
+    singular: greenplumpxfservice
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - description: The greenplum pxf service status
+      jsonPath: .status.phase
+      name: Status
+      type: string
+    name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: GreenplumPXFService is the Schema for the greenplumpxfservices API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: GreenplumPXFServiceSpec defines the desired state of GreenplumPXFService
+            properties:
+              cpu:
+                anyOf:
+                - type: integer
+                - type: string
+                description: Quantity expressed with an SI suffix, like 2Gi, 200m, 3.5, etc.
+                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                x-kubernetes-int-or-string: true
+              memory:
+                anyOf:
+                - type: integer
+                - type: string
+                description: Quantity expressed with an SI suffix, like 2Gi, 200m, 3.5, etc.
+                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                x-kubernetes-int-or-string: true
+              pxfConf:
+                description: S3 Bucket and Secret for downloading PXF configs
+                properties:
+                  s3Source:
+                    properties:
+                      bucket:
+                        minLength: 1
+                        type: string
+                      endpoint:
+                        minLength: 1
+                        type: string
+                      folder:
+                        minLength: 1
+                        type: string
+                      protocol:
+                        enum:
+                        - http
+                        - https
+                        type: string
+                      secret:
+                        minLength: 1
+                        type: string
+                    required:
+                    - bucket
+                    - endpoint
+                    - secret
+                    type: object
+                required:
+                - s3Source
+                type: object
+              replicas:
+                default: 2
+                description: Number of pods to create
+                format: int32
+                maximum: 1000
+                minimum: 1
+                type: integer
+              workerSelector:
+                additionalProperties:
+                  type: string
+                description: A set of node labels for scheduling pods
+                type: object
+            type: object
+          status:
+            description: GreenplumPXFServiceStatus defines the observed state of GreenplumPXFService
+            properties:
+              phase:
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

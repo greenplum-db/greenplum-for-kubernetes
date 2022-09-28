@@ -1,0 +1,11 @@
+#!/bin/sh
+
+git diff-tree --no-commit-id --name-only -r HEAD | grep greenplum-operator/operator/
+if [ $? = 0 ]; then
+    RED='\033[0;31m'
+    NOCOLOR='\033[0m'
+    echo "${RED}~~~~~~~~~WARNING~~~~~~~~"
+    echo "git diff detected changes in helm chart directory."
+    echo "Make sure to increase helm Chart.yml \`version\` field."
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~${NOCOLOR}"
+fi

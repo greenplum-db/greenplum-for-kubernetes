@@ -1,0 +1,34 @@
+schemaVersion: 2.0.0
+commandTests:
+- name: "is ubuntu 18.04"
+  command: "bash"
+  args:
+  - -c
+  - |
+    . /etc/lsb-release
+    [ "${dollar}DISTRIB_ID" = "Ubuntu" -a "${dollar}DISTRIB_RELEASE" = "18.04" ]
+fileExistenceTests:
+- name: "has Greenplum Operator"
+  path: '/usr/local/bin/greenplum-operator'
+  shouldExist: true
+metadataTest:
+  labels:
+    - key: 'name'
+      value: 'Greenplum Operator'
+    - key: 'vendor'
+      value: 'Pivotal Software'
+    - key: 'version'
+      value: 'latest'
+    - key: 'build_date'
+      value: 'latest'
+    - key: 'license'
+      value: 'https://network.pivotal.io/legal_documents/vmware_eula'
+    - key: 'greenplum_version'
+      value: 'latest'
+  env:
+  - key: 'GREENPLUM_VERSION'
+    value: 'latest'
+
+globalEnvVars:
+- key: "dollar"
+  value: $

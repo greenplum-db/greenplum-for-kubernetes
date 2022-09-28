@@ -1,0 +1,136 @@
+schemaVersion: "2.0.0"
+
+commandTests:
+# System
+- name: "All available upgrades are installed (ubuntu-gpdb-ent needs to be rebuilt)"
+  command: "sudo"
+  args: ["bash", "-c", "apt-get update >/dev/null && apt-get --just-print upgrade"]
+  expectedOutput:
+  - '(?m)^0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded'
+- name: "is ubuntu 18.04"
+  command: "bash"
+  args:
+    - -c
+    - |
+      . /etc/lsb-release
+      [ "${dollar}DISTRIB_ID" = "Ubuntu" -a "${dollar}DISTRIB_RELEASE" = "18.04" ]
+- name: "sudo is installed"
+  command: "which"
+  args: ["sudo"]
+  expectedOutput: ["/usr/bin/sudo"]
+- name: "vim is installed"
+  command: "which"
+  args: ["vim"]
+  expectedOutput: ["/usr/bin/vim"]
+- name: "madpack is installed"
+  command: "which"
+  args: ["madpack"]
+  expectedOutput: ["/usr/local/madlib/bin/madpack"]
+- name: "ping is installed"
+  command: "which"
+  args: ["ping"]
+  expectedOutput: ["/bin/ping"]
+- name: "sshd is installed"
+  command: "which"
+  args: ["sshd"]
+  expectedOutput: ["/usr/sbin/sshd"]
+- name: "java is installed"
+  command: "which"
+  args: ["java"]
+  expectedOutput: ["/usr/bin/java"]
+- name: "has locale set"
+  command: "locale"
+  args: ["-a"]
+  expectedOutput: ["en_US\\.utf8"]
+# GPDB binaries dependencies
+- name: "has correct version of Greenplum binaries"
+  command: "bash"
+  args: ["-c", "source /usr/local/greenplum-db/greenplum_path.sh; /usr/local/greenplum-db/bin/gpstart --version | grep ${GREENPLUM_VERSION}"]
+- name: "can run Greenplum binaries"
+  command: "/bin/bash"
+  args:
+  - -c
+  - |
+    set -o pipefail
+    source /usr/local/greenplum-db/greenplum_path.sh
+    for binary in ${dollar}(find /usr/local/greenplum-db/bin -maxdepth 1 -perm -111 -type f) ; do
+      if ldd ${dollar}binary | grep -q "not found" ; then
+        echo "Missing dependencies for ${dollar}binary"
+        exit 1
+      fi
+    done
+- name: "has greenplum debian app with correct name"
+  command: "apt-cache"
+  args: ["show","greenplum-db-6"]
+# gpadmin user
+- name: "has gpadmin user, with gpadmin as primary group, and tty as an additional group"
+  command: "id"
+  args: ["gpadmin"]
+  expectedOutput: ["uid=1000\\(gpadmin\\) gid=1000\\(gpadmin\\) groups=1000\\(gpadmin\\),5\\(tty\\)"]
+- name: "gpadmin owns all of /usr/local/greenplum-db/"
+  command: "find"
+  args: ["/usr/local/greenplum-db/", "-not", "-(", "-user", "gpadmin", "-group", "gpadmin", "-)"]
+  # Any output should cause this test to fail.
+  excludedOutput: ["."]
+fileExistenceTests:
+# GPDB binaries
+- name: 'has Greenplum'
+  path: '/usr/local/greenplum-db/greenplum_path.sh'
+  shouldExist: true
+- name: 'has gpstate'
+  path: '/usr/local/greenplum-db/bin/gpstate'
+  shouldExist: true
+- name: 'has gpinitsystem'
+  path: '/usr/local/greenplum-db/bin/gpinitsystem'
+  shouldExist: true
+- name: 'has gprecoverseg'
+  path: '/usr/local/greenplum-db/bin/gprecoverseg'
+  shouldExist: true
+- name: 'has gpactivatestandby'
+  path: '/usr/local/greenplum-db/bin/gpactivatestandby'
+  shouldExist: true
+# gpbackup binaries
+- name: 'has gpbackup'
+  path: '/usr/local/greenplum-db/bin/gpbackup'
+  shouldExist: true
+- name: 'has gpbackup_helper'
+  path: '/usr/local/greenplum-db/bin/gpbackup_helper'
+  shouldExist: true
+- name: 'has gpbackup_ddboost_plugin'
+  path: '/usr/local/greenplum-db/bin/gpbackup_ddboost_plugin'
+  shouldExist: true
+- name: 'has gpbackup_s3_plugin'
+  path: '/usr/local/greenplum-db/bin/gpbackup_s3_plugin'
+  shouldExist: true
+- name: 'has gprestore'
+  path: '/usr/local/greenplum-db/bin/gprestore'
+  shouldExist: true
+- name: 'has gpbackup_manager'
+  path: '/usr/local/greenplum-db/bin/gpbackup_manager'
+  shouldExist: true
+- name: 'has libDDBoost.so'
+  path: '/usr/local/greenplum-db/lib/libDDBoost.so'
+  shouldExist: true
+# pxf directory exists
+- name: '/usr/local/pxf-gp6 directory exists'
+  path: '/usr/local/pxf-gp6'
+  shouldExist: true
+
+metadataTest:
+  labels:
+    - key: 'greenplum_version'
+      value: 'latest'
+    - key: 'madlib_version'
+      value: 'replace_me'
+    - key: 'pxf_version'
+      value: 'replace_me'
+    - key: 'gpbackup_version'
+      value: 'replace_me'
+
+  env:
+  - key: 'JAVA_HOME'
+    value: '/usr/lib/jvm/java-11-openjdk-amd64/'
+
+globalEnvVars:
+  - key: "dollar"
+    value: $

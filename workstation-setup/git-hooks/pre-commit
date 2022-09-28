@@ -1,0 +1,15 @@
+#!/bin/sh
+
+protected_branch='master'
+current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+
+if [ $protected_branch = $current_branch ];
+then
+  git diff --cached --name-only |grep doc/
+  if [ $? == 0 ]; then
+    echo "git diff detected changes in doc directory."
+    echo "Please raise a pull-request to push doc changes"
+    echo "Aborting..."
+    exit 1
+  fi
+fi

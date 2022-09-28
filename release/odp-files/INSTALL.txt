@@ -1,0 +1,2 @@
+# assuming you have followed the BUILD.txt instruction to build
+dpkg -i <package-version>.deb

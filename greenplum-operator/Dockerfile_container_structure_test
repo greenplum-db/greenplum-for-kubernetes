@@ -1,0 +1,20 @@
+FROM golang:1.14
+
+RUN GO111MODULE=on go get github.com/GoogleContainerTools/container-structure-test/cmd/container-structure-test/ github.com/mikefarah/yq/v3
+
+COPY ./greenplum-operator/Dockerfile_test.yml ./
+
+ARG VERSION
+ARG DATE
+ARG GREENPLUM_VERSION
+
+RUN yq w -i ./Dockerfile_test.yml "metadataTest.labels(key == version).value" "${VERSION}" && \
+	yq w -i ./Dockerfile_test.yml "metadataTest.labels(key == build_date).value" "${DATE}" && \
+	yq w -i ./Dockerfile_test.yml "metadataTest.labels(key == greenplum_version).value" "${GREENPLUM_VERSION}" && \
+	yq w -i ./Dockerfile_test.yml "metadataTest.env(key == GREENPLUM_VERSION).value" "${GREENPLUM_VERSION}"
+
+
+ARG IMAGE_TAG
+ENV IMAGE_TAG=${IMAGE_TAG}
+
+CMD	container-structure-test test --image ${IMAGE_TAG} --config ./Dockerfile_test.yml

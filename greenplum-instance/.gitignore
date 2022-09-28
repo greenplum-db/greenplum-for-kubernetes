@@ -1,0 +1,7 @@
+cmd/sshKeyScan/sshKeyScan
+cmd/startGreenplumContainer/startGreenplumContainer
+cmd/initializeCluster/initializeCluster
+build-in-docker
+container-structure-test-in-docker
+package-in-docker
+

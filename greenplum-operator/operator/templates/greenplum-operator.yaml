@@ -1,0 +1,58 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: greenplum-operator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: greenplum-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: greenplum-operator
+  template:
+    metadata:
+      labels:
+        app: greenplum-operator
+    spec:
+{{- if .Values.operatorWorkerSelector }}
+{{- if not (eq (len .Values.operatorWorkerSelector) 0) }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+              {{- range $key, $val := .Values.operatorWorkerSelector }}
+                - key: "{{ $key }}"
+                  operator: In
+                  values:
+                    - "{{ $val }}"
+              {{- end }}
+{{- end }}
+{{- end }}
+      serviceAccountName: greenplum-system-operator
+      containers:
+      - name: greenplum-operator
+        image: {{ .Values.operatorImageRepository }}:{{ .Values.operatorImageTag }}
+        command: ["greenplum-operator", "--logLevel", {{ .Values.logLevel | default "info" | quote }}]
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: GREENPLUM_IMAGE_REPO
+          value: {{ .Values.greenplumImageRepository }}
+        - name: GREENPLUM_IMAGE_TAG
+          value: {{ .Values.greenplumImageTag }}
+        - name: OPERATOR_IMAGE_REPO
+          value: {{ .Values.operatorImageRepository }}
+        - name: OPERATOR_IMAGE_TAG
+          value: {{ .Values.operatorImageTag }}
+# TODO: Bring this back once the webhook is ported over to KubeBuilder
+#        readinessProbe:
+#          httpGet:
+#            path: /ready
+#            port: 443
+#            scheme: HTTPS
+#          initialDelaySeconds: 1
+#          periodSeconds: 5
+      imagePullSecrets:
+        - name: regsecret

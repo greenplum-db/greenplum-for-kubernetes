@@ -1,0 +1,48 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - greenplum.pivotal.io
+  resources:
+  - greenplumclusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - greenplum.pivotal.io
+  resources:
+  - greenplumclusters/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - greenplum.pivotal.io
+  resources:
+  - greenplumpxfservices
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - greenplum.pivotal.io
+  resources:
+  - greenplumpxfservices/status
+  verbs:
+  - get
+  - patch
+  - update

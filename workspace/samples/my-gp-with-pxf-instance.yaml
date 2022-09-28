@@ -1,0 +1,42 @@
+apiVersion: "greenplum.pivotal.io/v1"
+kind: "GreenplumCluster"
+metadata:
+  name: my-greenplum
+spec:
+  masterAndStandby:
+    hostBasedAuthentication: |
+      # host   all   gpadmin   0.0.0.0/0   trust
+    memory: "800Mi"
+    cpu: "0.5"
+    storageClassName: standard
+    storage: 1G
+    workerSelector: {}
+  segments:
+    primarySegmentCount: 1
+    memory: "800Mi"
+    cpu: "0.5"
+    storageClassName: standard
+    storage: 2G
+    workerSelector: {}
+  pxf:
+    serviceName: "my-greenplum-pxf"
+
+---
+apiVersion: "greenplum.pivotal.io/v1beta1"
+kind: "GreenplumPXFService"
+metadata:
+  name: my-greenplum-pxf
+spec:
+  replicas: 2
+  cpu: "0.5"
+  memory: "1Gi"
+  workerSelector: {}
+#  pxfConf:
+#    s3Source:
+#      secret: "my-greenplum-pxf-configs"
+#      endpoint: "s3.amazonaws.com"
+#      bucket: "YOUR_S3_BUCKET_NAME"
+#      folder: "YOUR_S3_BUCKET_FOLDER-Optional"
+#
+# Note: If using pxfConf.s3Source, in addition to applying the above yaml be sure to create a secret using a command similar to:
+# kubectl create secret generic my-greenplum-pxf-configs --from-literal='access_key_id=XXX' --from-literal='secret_access_key=XXX'

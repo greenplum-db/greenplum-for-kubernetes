@@ -1,0 +1,8 @@
+other:madlib:1.17.0:
+  name: 'madlib'
+  version: '1.17.0'
+  repository: 'Other'
+  license: 'Apache2.0'
+  url: 'https://github.com/apache/madlib/archive/rel/v1.17.0.tar.gz'
+  other-distribution: 'madlib-rel-v1.17.0.tar.gz'
+  interactions: ['Distributed - Dynamic Link w/ OSS']

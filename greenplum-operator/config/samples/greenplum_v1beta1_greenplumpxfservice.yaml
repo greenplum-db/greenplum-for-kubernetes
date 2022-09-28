@@ -1,0 +1,7 @@
+apiVersion: greenplum.pivotal.io/v1beta1
+kind: GreenplumPXFService
+metadata:
+  name: greenplumpxfservice-sample
+spec:
+  # Add fields here
+  foo: bar

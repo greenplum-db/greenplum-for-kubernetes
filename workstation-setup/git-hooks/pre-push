@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+protected_branch='master'
+current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+
+if [ $protected_branch = $current_branch ]; then
+  while true; do
+    read -p "Did you remember to run make race/check? (Y/n): " yn </dev/tty
+    case $yn in
+        ''|Yes|yes|Y|y)  break ;;
+        No|no|N|n) echo "Aborting push"; exit 1 ;;
+        * ) echo "Please answer yes or no." ;;
+    esac
+  done
+fi

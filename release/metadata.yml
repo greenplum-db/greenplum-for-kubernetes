@@ -1,0 +1,42 @@
+release:
+  version: <RELEASE_VERSION>
+  release_type: Release Candidate
+  eula_slug: vmware_eula
+  description: Greenplum for Kubernetes
+  release_notes_url: http://greenplum-kubernetes.docs.pivotal.io/
+  availability: Admins Only
+  controlled: false
+  eccn: 5D002.c1 (b1)
+  license_exception: ENC
+product_files:
+- file: workspace/files-to-upload/greenplum-for-kubernetes-v<RELEASE_VERSION>.tar.gz
+  upload_as: Tanzu Greenplum for Kubernetes v<RELEASE_VERSION>
+  file_type: Software
+  file_version: <RELEASE_VERSION>
+- file: workspace/files-to-upload/open_source_license_pivotal-gpdb-6.0.0-1787e8a-1566480846.txt
+  upload_as: Open Source Licenses for GPDB 6.x
+  description: Open Source Licenses for GPDB 6.x
+  file_type: Open Source License
+  docs_url:
+  system_requirements:
+  platforms:
+  included_files:
+  file_version: 6.0.0
+- file: workspace/files-to-upload/open-source-licenses-v<RELEASE_VERSION>.txt
+  upload_as: Open Source Licenses for Greenplum for Kubernetes <RELEASE_VERSION>+
+  description: Open Source Licenses for Greenplum for Kubernetes <RELEASE_VERSION>+
+  file_type: Open Source License
+  docs_url:
+  system_requirements:
+  platforms:
+  included_files:
+  file_version: <RELEASE_VERSION>
+- file: workspace/files-to-upload/VMware-greenplum-gp4k-<RELEASE_VERSION>-ODP.tar.gz
+  upload_as: Open Source Disclosure Package for Greenplum for Kubernetes <RELEASE_VERSION>+
+  description: Open Source Disclosure Package for Greenplum for Kubernetes <RELEASE_VERSION>+
+  file_type: Open Source License
+  docs_url:
+  system_requirements:
+  platforms:
+  included_files:
+  file_version: <RELEASE_VERSION>

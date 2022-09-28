@@ -1,0 +1,19 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+
+inputs:
+- name: greenplum-for-kubernetes
+
+run:
+  path: greenplum-for-kubernetes/concourse/scripts/delete-k8s-cluster.bash
+
+params:
+  PKS_USER:
+  PKS_PASSWORD:
+  CLUSTER_NAME: required
+  GCP_SVC_ACCT_KEY: required
+  GCP_PROJECT: required
+  KUBEENV: required

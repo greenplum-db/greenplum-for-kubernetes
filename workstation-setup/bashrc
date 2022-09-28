@@ -1,0 +1,23 @@
+PATH=~/bin:~/go/bin:/usr/local/opt/ruby/bin:$PATH
+export EDITOR=vim
+
+# If not running interactively, don't do anything else
+case $- in
+  *i*) ;;
+    *) return;;
+esac
+
+# These are stupid aliases for exit in BASH_IT
+unalias q c k 2> /dev/null
+
+alias gg='cd ~/workspace/greenplum-for-kubernetes'
+alias k='kubectl'
+
+# we use git author
+alias git='git-together --global'
+export GIT_TOGETHER_NO_SIGNOFF=1
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+eval "$(direnv hook bash)"
+source '/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.bash.inc'
+[[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"

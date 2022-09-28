@@ -1,0 +1,12 @@
+platform: linux
+image_resource:
+  type: registry-image
+inputs:
+- name: deb_package_open_source_ubuntu16
+- name: greenplum-for-kubernetes
+- name: gpdb_5X_src
+  path: gpdb_src
+run:
+  path: greenplum-for-kubernetes/concourse/scripts/oss-validation.bash
+params:
+  DEBIAN_PACKAGE:

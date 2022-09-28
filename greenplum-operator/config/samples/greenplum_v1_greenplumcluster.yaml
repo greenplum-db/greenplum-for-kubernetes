@@ -1,0 +1,7 @@
+apiVersion: greenplum.pivotal.io/v1
+kind: GreenplumCluster
+metadata:
+  name: greenplumcluster-sample
+spec:
+  # Add fields here
+  foo: bar

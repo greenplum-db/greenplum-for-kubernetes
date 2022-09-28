@@ -1,0 +1,13 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: greenplum-system-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: greenplum-system-operator
+subjects:
+- kind: ServiceAccount
+  name: greenplum-system-operator
+  namespace: {{ .Release.Namespace }}

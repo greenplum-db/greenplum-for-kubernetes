@@ -1,0 +1,54 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+
+inputs:
+- name: greenplum-for-kubernetes
+- name: gp-kubernetes-rc-release  # Only needed if provisioning a PKS cluster
+
+run:
+  path: greenplum-for-kubernetes/concourse/cross-team/provision-cluster.bash
+
+params:
+  POLL_TIMEOUT: "300"
+  MACHINE_TYPE: # Defaults to n1-standard-2
+  NODE_COUNT: # Defaults to 2xSEGMENT_COUNT + 2
+  SEGMENT_COUNT: # Defaults to 1 primary segment pod & 1 mirror segment pod
+  GP4K_VERSION: # Defaults to latest green
+  CPU_RATE_LIMIT: # Defaults CPU_RATE_LIMIT for default resource_group to 70
+  MEMORY_LIMIT: # Defaults MEMORY_LIMIT for default resource_group to 70
+  CIDR_RANGE: # Defaults to empty
+  CLUSTER_LOAD_BALANCER: # Required for PKS clusters; Optional for GKE
+  NETWORK: # Uses the default network if not specified
+  MASTERS_LABEL: # Does not label master nodes if not specified
+  SEGMENTS_LABEL: # Does not label segment nodes if not specified
+  GP_INSTANCE_NAME: required # Overrides the greenplum cluster name  cluster_config if specified
+  KUBEENV: required # either GKE or PKS
+  CLUSTER_NAME: required # GKE cluster name
+  GCP_SVC_ACCT_KEY: required
+  GCP_PROJECT: required
+  GCP_ZONE:
+  CLUSTER_CONFIG: |
+    apiVersion: "greenplum.pivotal.io/v1"
+    kind: "GreenplumCluster"
+    metadata:
+      name: # Use the `GP_INSTANCE_NAME` parameter to set this
+    spec:
+      masterAndStandby:
+        hostBasedAuthentication: |
+          # host   all   gpadmin   1.2.3.4/32   trust
+          # host   all   gpuser    0.0.0.0/0   md5
+        memory: "800Mi"
+        cpu: "0.5"
+        storageClassName: standard
+        storage: 1G
+        workerSelector: {}
+      segments:
+        primarySegmentCount: 1
+        memory: "800Mi"
+        cpu: "0.5"
+        storageClassName: standard
+        storage: 2G
+        workerSelector: {}

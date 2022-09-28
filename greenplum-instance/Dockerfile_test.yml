@@ -1,0 +1,172 @@
+schemaVersion: "2.0.0"
+
+fileContentTests:
+- name: "has proper greenplum limits"
+  path: '/etc/security/limits.d/gpadmin-limits.conf'
+  expectedContents: ['soft nofile 65536', 'hard nofile 65536', 'soft nproc 131072', 'hard nproc 131072', 'soft core 0', 'hard core 0']
+
+commandTests:
+- name: "All available upgrades are installed (ubuntu-gpdb-ent needs to be rebuilt)"
+  command: "sudo"
+  args: ["bash", "-c", "apt-get update >/dev/null && apt-get --just-print upgrade"]
+  expectedOutput:
+    - '(?m)^0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded'
+- name: "No extra files in tools directory"
+  command: "bash"
+  args: ["-c", "ls /home/gpadmin/tools/ | wc -l"]
+  expectedOutput: ["10"]  # the number of files in tools/ we check for in fileExistenceTests
+# Host
+- name: "has no host key files /etc/ssh/ssh_host_*_key{,.pub}"
+  command: "bash"
+  args: ["-c", "ls /etc/ssh/ssh_host_*_key* | wc -l"]
+  expectedOutput: ["0"]
+- name: "has /etc/ssh/sshd_conf only list rsa host key file"
+  command: "bash"
+  args: ["-c", "grep -v '^\\s*#' /etc/ssh/sshd_config | grep 'ssh_host_rsa_key' | wc -l"]
+  expectedOutput: ["1"]
+- name: "has /etc/ssh/sshd_conf list NO other host key files"
+  command: "bash"
+  args: ["-c", "grep -v '^\\s*#' /etc/ssh/sshd_config | grep 'ssh_host' | grep -v 'ssh_host_rsa_key' | wc -l"]
+  expectedOutput: ["0"]
+- name: "/etc/ssh/sshd_config disables UsePAM"
+  command: "bash"
+  args: ["-c", "grep -v '^\\s*#' /etc/ssh/sshd_config | grep 'UsePAM'"]
+  expectedOutput: ["UsePAM no"]
+- name: "/etc/ssh/sshd_config disables PasswordAuthentication"
+  command: "bash"
+  args: ["-c", "grep -q '^PasswordAuthentication no' /etc/ssh/sshd_config"]
+# User
+- name: "login as gpadmin"
+  command: "whoami"
+  expectedOutput: ["gpadmin"]
+- name: "can gpadmin sudo without password"
+  command: "sudo"
+  args: ["whoami"]
+- name: "has limits for gpadmin maximum size of core files"
+  command: "sudo"
+  args: ["su", "-", "gpadmin", "-c", "ulimit -c"]
+  expectedOutput: ["0"]
+- name: "has limits for gpadmin maximum number of user processes"
+  command: "sudo"
+  args: ["su", "-", "gpadmin", "-c", "ulimit -u"]
+  expectedOutput: ["131072"]
+- name: "has limits for gpadmin maximum number of open file descriptors"
+  command: "sudo"
+  args: ["su", "-", "gpadmin", "-c", "ulimit -n"]
+  expectedOutput: ["65536"]
+# Tools
+- name: "tini is installed"
+  command: "which"
+  args: ["tini"]
+  expectedOutput: ["/usr/bin/tini"]
+# Java
+- name: "java has +UseContainerSupport enabled by default"
+  command: "bash"
+  args: ["-c","java -XX:+PrintFlagsFinal -version | grep UseContainerSupport"]
+  expectedOutput: [" *bool UseContainerSupport += true +{product}"]
+
+fileExistenceTests:
+# GPDB binaries
+# Greenplum directory tests
+- name: "/usr/local/greenplum-db/ directory exists"
+  path: "/usr/local/greenplum-db/"
+  shouldExist: true
+  uid: 1000
+  gid: 1000
+  permissions: 'drwxr-xr-x'
+- name: 'does not have gppkg'
+  path: '/usr/local/greenplum-db/bin/gppkg'
+  shouldExist: false
+- name: 'has Greenplum'
+  path: '/usr/local/greenplum-db/greenplum_path.sh'
+  shouldExist: true
+- name: 'does not have gppkg'
+  path: '/usr/local/greenplum-db/bin/gppkg'
+  shouldExist: false
+- name: 'has gpstate'
+  path: '/usr/local/greenplum-db/bin/gpstate'
+  shouldExist: true
+- name: 'has gpinitsystem'
+  path: '/usr/local/greenplum-db/bin/gpinitsystem'
+  shouldExist: true
+- name: 'has gprecoverseg'
+  path: '/usr/local/greenplum-db/bin/gprecoverseg'
+  shouldExist: true
+- name: 'has gpactivatestandby'
+  path: '/usr/local/greenplum-db/bin/gpactivatestandby'
+  shouldExist: true
+# greenplum-for-kubernetes binaries in ~/tools (sylmlink to /tools) run by gpadmin
+- name: 'sshKeyScan'
+  path: '/home/gpadmin/tools/sshKeyScan'
+  shouldExist: true
+- name: 'startGreenplumContainer'
+  path: '/home/gpadmin/tools/startGreenplumContainer'
+  shouldExist: true
+- name: 'initializeCluster'
+  path: '/home/gpadmin/tools/initializeCluster'
+  shouldExist: true
+- name: 'startPXF'
+  path: '/home/gpadmin/tools/startPXF'
+  shouldExist: true
+- name: 'runGpexpand'
+  path: '/home/gpadmin/tools/runGpexpand'
+  shouldExist: true
+- name: 'waitForKnownHosts'
+  path: '/home/gpadmin/tools/waitForKnownHosts'
+  shouldExist: true
+- name: 'gpexpand_job.sh'
+  path: '/home/gpadmin/tools/gpexpand_job.sh'
+  shouldExist: true
+# PXF directory tests
+- name: "/etc/pxf directory exists"
+  path: "/etc/pxf"
+  shouldExist: true
+  uid: 1000
+  gid: 1000
+  permissions: 'drwxr-xr-x'
+- name: "/etc/pxf/conf directory exists"
+  path: "/etc/pxf/conf"
+  shouldExist: true
+- name: "/etc/pxf/keytabs directory exists"
+  path: "/etc/pxf/keytabs"
+  shouldExist: true
+- name: "/etc/pxf/lib directory exists"
+  path: "/etc/pxf/lib"
+  shouldExist: true
+- name: "/etc/pxf/logs directory exists"
+  path: "/etc/pxf/logs"
+  shouldExist: true
+- name: "/etc/pxf/servers directory exists"
+  path: "/etc/pxf/servers"
+  shouldExist: true
+- name: "/etc/pxf/templates directory exists"
+  path: "/etc/pxf/templates"
+  shouldExist: true
+
+metadataTest:
+  entrypoint: ["/usr/bin/tini", "--"]
+  exposedPorts: ["22"]
+  workdir: "/home/gpadmin"
+  labels:
+    - key: 'name'
+      value: 'Greenplum for Kubernetes'
+    - key: 'vendor'
+      value: 'Pivotal Software'
+    - key: 'version'
+      value: 'latest'
+    - key: 'build_date'
+      value: 'latest'
+    - key: 'license'
+      value: 'https://network.pivotal.io/legal_documents/vmware_eula'
+
+  env:
+  - key: 'GREENPLUM_VERSION'
+    value: 'latest'
+  - key: 'USER'
+    value: 'gpadmin'
+  - key: 'PGPORT'
+    value: '5432'
+
+globalEnvVars:
+  - key: "dollar"
+    value: $

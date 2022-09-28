@@ -1,0 +1,8 @@
+other:greenplum-db:6.10.1:
+  name: 'greenplum-db'
+  version: '6.10.1'
+  repository: 'Other'
+  license: 'Apache2.0'
+  url: 'https://github.com/greenplum-db/gpdb/releases/download/6.10.1/6.10.1-src-full.tar.gz'
+  other-distribution: '6.10.1-src-full.tar.gz'
+  interactions: ['Distributed - No Linking']

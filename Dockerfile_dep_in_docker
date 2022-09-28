@@ -1,0 +1,21 @@
+# syntax = docker/dockerfile:experimental
+FROM golang:1.14
+
+RUN curl -sL https://go.kubebuilder.io/dl/2.1.0/linux/amd64 | tar xz -C /usr/local && \
+    ln -s kubebuilder_2.1.0_linux_amd64 /usr/local/kubebuilder
+ENV PATH ${PATH}:/usr/local/kubebuilder/bin
+
+WORKDIR /greenplum-for-kubernetes
+
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    go mod download
+
+COPY Makefile getversion ./
+COPY greenplum-operator/Makefile ./greenplum-operator/
+COPY tools/go.mod tools/go.sum ./tools/
+
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    make tools

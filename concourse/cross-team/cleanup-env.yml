@@ -1,0 +1,19 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+
+inputs:
+- name: greenplum-for-kubernetes
+
+run:
+  path: greenplum-for-kubernetes/concourse/cross-team/cleanup-env.bash
+
+params:
+  # should be same as that of provision-cluster.yml
+  KUBEENV: required
+  CLUSTER_NAME: required # GKE cluster name
+  GCP_SVC_ACCT_KEY: required
+  GCP_PROJECT: required
+  GP_INSTANCE_NAME: required

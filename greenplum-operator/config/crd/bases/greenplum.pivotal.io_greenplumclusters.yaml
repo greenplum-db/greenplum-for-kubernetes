@@ -1,0 +1,179 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.9
+  creationTimestamp: null
+  name: greenplumclusters.greenplum.pivotal.io
+spec:
+  group: greenplum.pivotal.io
+  names:
+    categories:
+    - all
+    kind: GreenplumCluster
+    listKind: GreenplumClusterList
+    plural: greenplumclusters
+    singular: greenplumcluster
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - description: The greenplum instance status
+      jsonPath: .status.phase
+      name: Status
+      type: string
+    - description: The greenplum instance age
+      jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: GreenplumCluster is the Schema for the greenplumclusters API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: GreenplumClusterSpec defines the desired state of GreenplumCluster
+            properties:
+              masterAndStandby:
+                properties:
+                  antiAffinity:
+                    default: "no"
+                    description: YES or NO, specify whether or not to deploy with anti-affinity
+                    pattern: ^(?:yes|Yes|YES|no|No|NO|)$
+                    type: string
+                  cpu:
+                    anyOf:
+                    - type: integer
+                    - type: string
+                    description: Quantity expressed with an SI suffix, like 2Gi, 200m, 3.5, etc.
+                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                    x-kubernetes-int-or-string: true
+                  hostBasedAuthentication:
+                    description: Additional entries to add to pg_hba.conf
+                    type: string
+                  memory:
+                    anyOf:
+                    - type: integer
+                    - type: string
+                    description: Quantity expressed with an SI suffix, like 2Gi, 200m, 3.5, etc.
+                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                    x-kubernetes-int-or-string: true
+                  standby:
+                    default: "no"
+                    description: YES or NO, specify whether or not to deploy a standby master
+                    pattern: ^(?:yes|Yes|YES|no|No|NO|)$
+                    type: string
+                  storage:
+                    anyOf:
+                    - type: integer
+                    - type: string
+                    description: Quantity expressed with an SI suffix, like 2Gi, 200m, 3.5, etc.
+                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                    x-kubernetes-int-or-string: true
+                  storageClassName:
+                    description: Name of storage class to use for statefulset PVs
+                    minLength: 1
+                    type: string
+                  workerSelector:
+                    additionalProperties:
+                      type: string
+                    description: A set of node labels for scheduling pods
+                    type: object
+                required:
+                - storage
+                - storageClassName
+                type: object
+              pxf:
+                properties:
+                  serviceName:
+                    description: Name of the PXF Service
+                    type: string
+                required:
+                - serviceName
+                type: object
+              segments:
+                properties:
+                  antiAffinity:
+                    default: "no"
+                    description: YES or NO, specify whether or not to deploy with anti-affinity
+                    pattern: ^(?:yes|Yes|YES|no|No|NO|)$
+                    type: string
+                  cpu:
+                    anyOf:
+                    - type: integer
+                    - type: string
+                    description: Quantity expressed with an SI suffix, like 2Gi, 200m, 3.5, etc.
+                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                    x-kubernetes-int-or-string: true
+                  memory:
+                    anyOf:
+                    - type: integer
+                    - type: string
+                    description: Quantity expressed with an SI suffix, like 2Gi, 200m, 3.5, etc.
+                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                    x-kubernetes-int-or-string: true
+                  mirrors:
+                    default: "no"
+                    description: YES or NO, specify whether or not to deploy a PrimarySegmentCount number of mirror segments
+                    pattern: ^(?:yes|Yes|YES|no|No|NO|)$
+                    type: string
+                  primarySegmentCount:
+                    description: Number of primary segments to create
+                    format: int32
+                    maximum: 10000
+                    minimum: 1
+                    type: integer
+                  storage:
+                    anyOf:
+                    - type: integer
+                    - type: string
+                    description: Quantity expressed with an SI suffix, like 2Gi, 200m, 3.5, etc.
+                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                    x-kubernetes-int-or-string: true
+                  storageClassName:
+                    description: Name of storage class to use for statefulset PVs
+                    minLength: 1
+                    type: string
+                  workerSelector:
+                    additionalProperties:
+                      type: string
+                    description: A set of node labels for scheduling pods
+                    type: object
+                required:
+                - primarySegmentCount
+                - storage
+                - storageClassName
+                type: object
+            required:
+            - masterAndStandby
+            - segments
+            type: object
+          status:
+            description: GreenplumClusterStatus is the status for a GreenplumCluster resource
+            properties:
+              instanceImage:
+                type: string
+              operatorVersion:
+                type: string
+              phase:
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

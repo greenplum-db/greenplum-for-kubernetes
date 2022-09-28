@@ -1,0 +1,7 @@
+.idea/
+*.iml
+bin/
+vendor/
+Docker_parameterized_test.yaml
+*~
+*.coverprofile

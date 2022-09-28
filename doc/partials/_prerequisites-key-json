@@ -1,0 +1,25 @@
+Obtain a Kubernetes service account key (a `key.json` file) for an account that has read access (`storage.objectViewer` role) to the Google Cloud Registry. You will need to identify this file in your configuration to pull VMware Tanzu Greenplum for Kubernetes docker images from the remote registry. For example:
+
+1. If necessary, create a new service account to use for VMware Tanzu Greenplum for Kubernetes. These example commands create a new account named `greenplum-image-pull` in your current GCP project:
+
+    ``` bash
+    $ export GCP_PROJECT=$(gcloud config get-value core/project)
+    
+    $ gcloud iam service-accounts create greenplum-image-pull
+    ```
+
+2. Assign the required `storage.objectViewer` role to the new account:
+
+    ``` bash
+    $ gcloud projects add-iam-policy-binding $GCP_PROJECT \
+        --member serviceAccount:greenplum-image-pull@$GCP_PROJECT.iam.gserviceaccount.com \
+        --role roles/storage.objectViewer
+    ```
+
+3. Create the key for the account:
+
+    ``` bash
+    $ gcloud iam service-accounts keys create \
+        --iam-account "greenplum-image-pull@$GCP_PROJECT.iam.gserviceaccount.com" \
+        ~/key.json
+    ```

@@ -1,0 +1,38 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+
+inputs:
+- name: greenplum-for-kubernetes
+- name: greenplum-for-kubernetes-pcf-manifest
+  optional: true
+
+run:
+  path: greenplum-for-kubernetes/concourse/scripts/provision-k8s-cluster.bash
+
+params:
+  #### required ####
+  K8S_CLUSTER_TYPE:
+  GCP_SVC_ACCT_KEY:
+  GCP_PROJECT:
+  K8S_CLUSTER_NAME:
+  #### optional ####
+  K8S_CLUSTER_NODE_COUNT:
+  #### gke required ####
+  GCP_NETWORK:
+  GCP_SUBNETWORK:
+  GCP_ZONE:
+  #### gke-private (including above) required ####
+  GCP_GKE_MASTER_CIDR:
+  #### gke optional ####
+  GCP_MACHINE_TYPE:
+  GCP_GKE_VERSION:
+  #### pks required ####
+  PKS_USER:
+  PKS_PASSWORD:
+  PKS_CLUSTER_LOAD_BALANCER_IP:
+  PKS_PLAN:
+  #### pks optional ####
+  PKS_API_URL:

@@ -1,0 +1,175 @@
+admissionControllerKind: MutatingWebhookConfiguration
+opa: false
+
+mgmt:
+  configmapPolicies:
+    enabled: true
+    # Namespace to watch for configmaps containing .rego files
+    namespaces: [greenplum-opa]
+    requireLabel: false
+
+rbac:
+  create: true
+  rules:
+    cluster:
+    - apiGroups:
+        - ""
+      resources:
+        - configmaps
+      verbs:
+        - get
+        - list
+        - watch
+        - patch
+        - update
+
+admissionControllerNamespaceSelector:
+  matchExpressions: []
+  matchLabels:
+    # The lablel to place on namespaces that are controlled by this webhook
+    opa-controlled: 'true'
+
+# Bootstrap OPA with infrastructure to run a mutating webhook
+bootstrapPolicies:
+  mutating-webhook-bootstrap: |
+    package system
+
+    # Entrypoint: Build the response to the server
+    main = {
+        "apiVersion": "admission.k8s.io/v1beta1",
+        "kind": "AdmissionReview",
+        "response": response,
+    }
+
+    # If no other responses are defined, allow the request.
+    default response = {"allowed": true}
+
+    # Mutate the request if any there are any patches.
+    response = {
+        "allowed": true,
+        "patchType": "JSONPatch",
+        "patch": base64.encode(json.marshal(patches)),
+    } {
+        count(patches) > 0
+    }
+
+    # First, add in the missing metadata fields, if they are needed
+    patches[content] {
+        count(patch) > 0
+        content := additional_metadata_field[_]
+    }
+
+    # Add any user generated patches after the additional metadata field
+    # Note: patch generates a _set_ of arrays. The ordering of the set is not defined.
+    # If you need to define ordering across patches, generate them inside the same rule.
+    patches[content] {
+        count(patch) > 0
+        content := patch[_][_]
+    }
+
+    # If a metadata field does not exist, add a patch to create an empty one
+    additional_metadata_field[field] {
+        field := add_metadata_field("annotations")
+    }
+
+    additional_metadata_field[field] {
+        field := add_metadata_field("labels")
+    }
+
+    # Helper function for additional_metadata_field
+    add_metadata_field(field) = ret {
+        not is_defined(input.request.object.metadata, field)
+        jsonpath := sprintf("/metadata/%s", [field])
+
+        ret := {
+            "op": "add",
+            "path": jsonpath,
+            "value": {},
+        }
+    }
+
+    is_defined(key, value) = x {
+        x := is_object(key[value])
+    } else = x {
+        x := is_string(key[value])
+    } else = x {
+        x := is_number(key[value])
+    } else = x {
+        x := is_boolean(key[value])
+    } else = x {
+        x := is_array(key[value])
+    } else = x {
+        x := is_set(key[value])
+    } else = x {
+        x := false
+    }
+
+    # See https://tools.ietf.org/html/rfc6901#section-4
+    escape_field(field) = ret {
+        ret := strings.replace_n({"/": "~1", "~": "~0"}, field)
+    }
+
+    # Query helper functions
+    is_create_or_update {
+        is_create
+    }
+
+    is_create_or_update {
+        is_update
+    }
+
+    is_create {
+        input.request.operation == "CREATE"
+    }
+
+    is_update {
+        input.request.operation == "UPDATE"
+    }
+
+    # TODO: This needs to account for blank group (core)
+    #is_groupversion(group, version, kind) {
+    #	apiVersion := sprintf("%s/%s", [group, version])
+    #	input.request.object.apiVersion == apiVersion
+    #}
+
+    is_kind(kind) {
+        input.request.object.kind == kind
+    }
+
+    is_name(name) {
+        input.request.object.metadata.name == name
+    }
+
+    is_namespace(namespace) {
+        input.request.object.metadata.namespace == namespace
+    }
+
+    has_label(key, value) {
+        is_defined(input.request.object.metadata.labels, key)
+        input.request.object.metadata.labels[key] == value
+    }
+
+    # User functions to generate a mutating webhook json patch
+    add_annotation(field, value) = ret {
+        jsonpath := "/metadata/annotations"
+        ret := replace_at_jsonpath(jsonpath, field, value)
+    }
+
+    add_label(field, value) = ret {
+        jsonpath := "/metadata/labels"
+        ret := replace_at_jsonpath(jsonpath, field, value)
+    }
+
+    replace_at_jsonpath(jsonpath, field, value) = ret {
+        ret := [{
+            "op": "add",
+            "path": sprintf("%s/%s", [jsonpath, escape_field(field)]),
+            "value": value,
+        }]
+    }
+
+    # HACK: Generate an empty patch so that the policy will load without any
+    # patches defined
+    patch[[]] {
+        false
+    }
