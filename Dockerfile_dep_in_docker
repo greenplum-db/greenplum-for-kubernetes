@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:experimental
-FROM golang:1.14
+FROM golang:1.19
 
 RUN curl -sL https://go.kubebuilder.io/dl/2.1.0/linux/amd64 | tar xz -C /usr/local && \
     ln -s kubebuilder_2.1.0_linux_amd64 /usr/local/kubebuilder

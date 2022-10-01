@@ -22,7 +22,7 @@ check:
 		docker run --rm \
 			-v $$PWD:/greenplum-for-kubernetes \
 			-w /greenplum-for-kubernetes \
-			golang:1.14 \
+			golang:1.19 \
 			make race lint; \
 	else \
 		make unit lint; \

@@ -1,4 +1,4 @@
-FROM golang:1.14
+FROM golang:1.19
 
 RUN GO111MODULE=on go get github.com/GoogleContainerTools/container-structure-test/cmd/container-structure-test/ github.com/mikefarah/yq/v3
 
