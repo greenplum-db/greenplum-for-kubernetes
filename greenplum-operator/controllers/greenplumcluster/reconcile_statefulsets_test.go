@@ -54,7 +54,7 @@ var _ = Describe("Reconcile statefulsets for GreenplumCluster", func() {
 	var reconcileErr error
 	JustBeforeEach(func() {
 		Expect(reactiveClient.Create(ctx, greenplumCluster)).To(Succeed())
-		_, reconcileErr = greenplumReconciler.Reconcile(greenplumClusterRequest)
+		_, reconcileErr = greenplumReconciler.Reconcile(context.TODO(), greenplumClusterRequest)
 	})
 
 	for _, ss := range []struct {

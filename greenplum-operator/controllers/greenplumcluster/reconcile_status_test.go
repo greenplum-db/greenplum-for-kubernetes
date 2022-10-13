@@ -51,7 +51,7 @@ var _ = Describe("Reconcile GreenplumCluster status", func() {
 	var reconcileResult ctrl.Result
 	JustBeforeEach(func() {
 		Expect(reactiveClient.Create(ctx, greenplumCluster)).To(Succeed())
-		reconcileResult, reconcileErr = greenplumReconciler.Reconcile(greenplumClusterRequest)
+		reconcileResult, reconcileErr = greenplumReconciler.Reconcile(context.TODO(), greenplumClusterRequest)
 	})
 
 	Context("initial cluster creation", func() {

@@ -1,6 +1,7 @@
 package greenplumcluster_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -29,9 +30,11 @@ var _ = Describe("Reconcile expansion", func() {
 		logBuf              *gbytes.Buffer
 		greenplumReconciler *greenplumcluster.GreenplumClusterReconciler
 		podExec             *fake.PodExec
+		ctx                 context.Context
 	)
 	BeforeEach(func() {
 		logBuf = gbytes.NewBuffer()
+		ctx = context.WithValue(context.Background(), struct{ key string }{"test"}, CurrentGinkgoTestDescription().TestText)
 
 		podExec = &fake.PodExec{}
 		greenplumReconciler = &greenplumcluster.GreenplumClusterReconciler{
@@ -57,7 +60,7 @@ var _ = Describe("Reconcile expansion", func() {
 		podExec.ErrorMsgOnMaster0 = "not active"
 		podExec.ErrorMsgOnMaster1 = "not active"
 		Expect(reactiveClient.Create(nil, firstGreenplumClusterSpec)).To(Succeed())
-		_, err := greenplumReconciler.Reconcile(greenplumClusterRequest)
+		_, err := greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 		Expect(err).NotTo(HaveOccurred())
 
 		podExec.ErrorMsgOnMaster0 = ""
@@ -84,7 +87,7 @@ var _ = Describe("Reconcile expansion", func() {
 				newGreenplumClusterSpec.Spec.Segments.PrimarySegmentCount = 6
 
 				Expect(reactiveClient.Update(nil, newGreenplumClusterSpec)).To(Succeed())
-				_, reconcileErr = greenplumReconciler.Reconcile(greenplumClusterRequest)
+				_, reconcileErr = greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 			})
 			It("Creates a job to run gpexpand", func() {
 				Expect(reconcileErr).NotTo(HaveOccurred())
@@ -157,7 +160,7 @@ var _ = Describe("Reconcile expansion", func() {
 				podExec.ErrorMsgOnMaster0 = ""
 				podExec.ErrorMsgOnMaster1 = ""
 				podExec.SegmentCount = "5\n"
-				_, reconcileErr = greenplumReconciler.Reconcile(greenplumClusterRequest)
+				_, reconcileErr = greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 			})
 			It("does not create a new job", func() {
 				Expect(reconcileErr).NotTo(HaveOccurred())
@@ -176,7 +179,7 @@ var _ = Describe("Reconcile expansion", func() {
 				podExec.ErrorMsgOnMaster0 = "not active"
 				podExec.ErrorMsgOnMaster1 = "not active"
 				podExec.SegmentCount = ""
-				_, reconcileErr = greenplumReconciler.Reconcile(greenplumClusterRequest)
+				_, reconcileErr = greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 			})
 			It("does not create a new job", func() {
 				Expect(reconcileErr).NotTo(HaveOccurred())
@@ -232,13 +235,13 @@ var _ = Describe("Reconcile expansion", func() {
 			})
 			It("deletes the old job", func() {
 				Expect(reactiveClient.Update(nil, newGreenplumClusterSpec)).To(Succeed())
-				Expect(greenplumReconciler.Reconcile(greenplumClusterRequest)).To(Equal(ctrl.Result{}))
+				Expect(greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)).To(Equal(ctrl.Result{}))
 
 				Expect(sawDelete).To(BeTrue())
 			})
 			It("creates a new job", func() {
 				Expect(reactiveClient.Update(nil, newGreenplumClusterSpec)).To(Succeed())
-				Expect(greenplumReconciler.Reconcile(greenplumClusterRequest)).To(Equal(ctrl.Result{}))
+				Expect(greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)).To(Equal(ctrl.Result{}))
 
 				Expect(sawCreate).To(BeTrue())
 			})
@@ -255,7 +258,7 @@ var _ = Describe("Reconcile expansion", func() {
 				})
 				It("returns an error", func() {
 					Expect(reactiveClient.Update(nil, newGreenplumClusterSpec)).To(Succeed())
-					_, err := greenplumReconciler.Reconcile(greenplumClusterRequest)
+					_, err := greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 
 					Expect(err).To(MatchError("unable to run gpexpand: I failed to get a job"))
 				})
@@ -273,7 +276,7 @@ var _ = Describe("Reconcile expansion", func() {
 				})
 				It("returns an error", func() {
 					Expect(reactiveClient.Update(nil, newGreenplumClusterSpec)).To(Succeed())
-					_, err := greenplumReconciler.Reconcile(greenplumClusterRequest)
+					_, err := greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 
 					Expect(err).To(MatchError("unable to run gpexpand: delete failure"))
 				})
@@ -296,7 +299,7 @@ var _ = Describe("Reconcile expansion", func() {
 			})
 			It("does nothing", func() {
 				Expect(reactiveClient.Update(nil, newGreenplumClusterSpec)).To(Succeed())
-				Expect(greenplumReconciler.Reconcile(greenplumClusterRequest)).To(Equal(ctrl.Result{}))
+				Expect(greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)).To(Equal(ctrl.Result{}))
 
 				Expect(sawCreate).To(BeFalse(), "should not create a job")
 			})

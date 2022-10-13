@@ -140,7 +140,7 @@ func modifyGreenplumContainer(params *GreenplumStatefulSetParams, containers []c
 	if container.ReadinessProbe == nil {
 		container.ReadinessProbe = &corev1.Probe{}
 	}
-	container.ReadinessProbe.Handler = corev1.Handler{
+	container.ReadinessProbe.ProbeHandler = corev1.ProbeHandler{
 		TCPSocket: &corev1.TCPSocketAction{
 			Port: intstr.FromInt(22),
 		},

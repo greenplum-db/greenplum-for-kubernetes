@@ -68,7 +68,7 @@ var _ = Describe("PXF controller", func() {
 		When("reconciliation succeeds", func() {
 			It("Creates a Deployment and Service when none exist", func() {
 				Expect(reactiveClient.Create(ctx, pxf)).To(Succeed())
-				_, err := pxfReconciler.Reconcile(pxfRequest)
+				_, err := pxfReconciler.Reconcile(ctx, pxfRequest)
 				Expect(err).NotTo(HaveOccurred())
 
 				var service corev1.Service
@@ -102,7 +102,7 @@ var _ = Describe("PXF controller", func() {
 			})
 			It("does not return an error (do not requeue)", func() {
 				Expect(reactiveClient.Create(ctx, pxf)).To(Succeed())
-				_, err := pxfReconciler.Reconcile(pxfRequest)
+				_, err := pxfReconciler.Reconcile(ctx, pxfRequest)
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
@@ -115,7 +115,7 @@ var _ = Describe("PXF controller", func() {
 			})
 			It("returns the error", func() {
 				Expect(reactiveClient.Create(ctx, pxf)).To(Succeed())
-				_, err := pxfReconciler.Reconcile(pxfRequest)
+				_, err := pxfReconciler.Reconcile(ctx, pxfRequest)
 				Expect(err).To(MatchError("unable to fetch GreenplumPXFService: injected error"))
 			})
 		})
@@ -128,7 +128,7 @@ var _ = Describe("PXF controller", func() {
 			})
 			It("returns the error", func() {
 				Expect(reactiveClient.Create(ctx, pxf)).To(Succeed())
-				_, err := pxfReconciler.Reconcile(pxfRequest)
+				_, err := pxfReconciler.Reconcile(ctx, pxfRequest)
 				Expect(err).To(MatchError("unable to CreateOrUpdate PXF Service: injected error"))
 			})
 		})
@@ -141,7 +141,7 @@ var _ = Describe("PXF controller", func() {
 			})
 			It("returns the error", func() {
 				Expect(reactiveClient.Create(ctx, pxf)).To(Succeed())
-				_, err := pxfReconciler.Reconcile(pxfRequest)
+				_, err := pxfReconciler.Reconcile(ctx, pxfRequest)
 				Expect(err).To(MatchError("unable to CreateOrUpdate PXF Deployment: injected error"))
 			})
 		})
@@ -150,7 +150,7 @@ var _ = Describe("PXF controller", func() {
 	When("updating GreenplumPXFService", func() {
 		BeforeEach(func() {
 			Expect(reactiveClient.Create(ctx, pxf)).To(Succeed())
-			_, err := pxfReconciler.Reconcile(pxfRequest)
+			_, err := pxfReconciler.Reconcile(ctx, pxfRequest)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(logBuf).To(gbytes.Say("PXF Service created"))
 			Expect(reactiveClient.Get(ctx, myPxfKey, &corev1.Service{})).To(Succeed())
@@ -168,7 +168,7 @@ var _ = Describe("PXF controller", func() {
 				}
 
 				Expect(reactiveClient.Update(ctx, pxf)).To(Succeed())
-				_, err := pxfReconciler.Reconcile(pxfRequest)
+				_, err := pxfReconciler.Reconcile(ctx, pxfRequest)
 				Expect(err).NotTo(HaveOccurred())
 
 				var deployment appsv1.Deployment
@@ -196,7 +196,7 @@ var _ = Describe("PXF controller", func() {
 			It("returns the error", func() {
 				pxf.Spec.Replicas = 99
 				Expect(reactiveClient.Update(ctx, pxf)).To(Succeed())
-				_, err := pxfReconciler.Reconcile(pxfRequest)
+				_, err := pxfReconciler.Reconcile(ctx, pxfRequest)
 				Expect(err).To(MatchError("unable to CreateOrUpdate PXF Deployment: injected error"))
 			})
 		})
@@ -212,7 +212,7 @@ var _ = Describe("PXF controller", func() {
 				})
 			})
 			It("skips reconcile", func() {
-				_, err := pxfReconciler.Reconcile(pxfRequest)
+				_, err := pxfReconciler.Reconcile(ctx, pxfRequest)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(deploymentUpdated).To(BeFalse(), "should not update deployment")
 				var deployment appsv1.Deployment
@@ -225,7 +225,7 @@ var _ = Describe("PXF controller", func() {
 	Context("Status", func() {
 		BeforeEach(func() {
 			Expect(reactiveClient.Create(ctx, pxf)).To(Succeed())
-			_, err := pxfReconciler.Reconcile(pxfRequest)
+			_, err := pxfReconciler.Reconcile(ctx, pxfRequest)
 			Expect(err).NotTo(HaveOccurred())
 		})
 		When("Deployment readyReplics = 0", func() {
@@ -242,7 +242,7 @@ var _ = Describe("PXF controller", func() {
 				pxfDeployment.Status.ReadyReplicas = int32(pxf.Spec.Replicas) - 1
 				pxfDeployment.Status.UnavailableReplicas = 1
 				Expect(reactiveClient.Update(ctx, &pxfDeployment)).To(Succeed())
-				_, err := pxfReconciler.Reconcile(pxfRequest)
+				_, err := pxfReconciler.Reconcile(ctx, pxfRequest)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("sets status to Degraded", func() {
@@ -258,7 +258,7 @@ var _ = Describe("PXF controller", func() {
 				pxfDeployment.Status.ReadyReplicas = int32(pxf.Spec.Replicas) - 1
 				pxfDeployment.Status.UpdatedReplicas = int32(pxf.Spec.Replicas) - 1
 				Expect(reactiveClient.Update(ctx, &pxfDeployment)).To(Succeed())
-				_, err := pxfReconciler.Reconcile(pxfRequest)
+				_, err := pxfReconciler.Reconcile(ctx, pxfRequest)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("sets status to Degraded", func() {
@@ -274,7 +274,7 @@ var _ = Describe("PXF controller", func() {
 				pxfDeployment.Status.ReadyReplicas = int32(pxf.Spec.Replicas)
 				pxfDeployment.Status.UpdatedReplicas = int32(pxf.Spec.Replicas)
 				Expect(reactiveClient.Update(ctx, &pxfDeployment)).To(Succeed())
-				_, err := pxfReconciler.Reconcile(pxfRequest)
+				_, err := pxfReconciler.Reconcile(ctx, pxfRequest)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("sets status to Running", func() {
@@ -290,7 +290,7 @@ var _ = Describe("PXF controller", func() {
 					patchCalled = true
 					return false, nil, nil
 				})
-				_, err := pxfReconciler.Reconcile(pxfRequest)
+				_, err := pxfReconciler.Reconcile(ctx, pxfRequest)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("does not update status", func() {

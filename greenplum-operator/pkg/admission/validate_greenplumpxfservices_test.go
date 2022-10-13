@@ -27,7 +27,7 @@ var _ = Describe("validateGreenplumPXFService", func() {
 		logBuf  *gbytes.Buffer
 	)
 	BeforeEach(func() {
-		reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+		reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme))
 		subject = admission.Handler{
 			KubeClient: reactiveClient,
 		}

@@ -28,5 +28,5 @@ func TestAPIs(t *testing.T) {
 }
 
 var _ = BeforeEach(func() {
-	reactiveClient = reactive.NewClient(fake.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+	reactiveClient = reactive.NewClient(fake.NewFakeClientWithScheme(scheme.Scheme))
 })

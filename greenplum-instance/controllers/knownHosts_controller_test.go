@@ -2,6 +2,7 @@ package controllers_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 
 	"github.com/blang/vfs"
@@ -33,6 +34,7 @@ var _ = Describe("KnownHostsController", func() {
 
 	Describe("Run happy path", func() {
 		var (
+			ctx           context.Context
 			testClient    *fake.Clientset
 			mockConfig    *instanceconfigTesting.MockReader
 			reconciler    *reconcileSpy
@@ -40,6 +42,7 @@ var _ = Describe("KnownHostsController", func() {
 			fakeEndpoints *corev1.Endpoints
 		)
 		BeforeEach(func() {
+			ctx = context.WithValue(context.Background(), struct{ key string }{"test"}, CurrentGinkgoTestDescription().TestText)
 			testClient = fake.NewSimpleClientset()
 			mockConfig = &instanceconfigTesting.MockReader{}
 			reconciler = &reconcileSpy{called: make(chan interface{})}
@@ -67,7 +70,7 @@ var _ = Describe("KnownHostsController", func() {
 		})
 		When("endpoints are added", func() {
 			JustBeforeEach(func() {
-				_, err := testClient.CoreV1().Endpoints("test-ns").Create(fakeEndpoints)
+				_, err := testClient.CoreV1().Endpoints("test-ns").Create(ctx, fakeEndpoints, metav1.CreateOptions{})
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("calls Reconcile", func() {
@@ -76,7 +79,7 @@ var _ = Describe("KnownHostsController", func() {
 		})
 		When("endpoints exist", func() {
 			JustBeforeEach(func() {
-				_, err := testClient.CoreV1().Endpoints("test-ns").Create(fakeEndpoints)
+				_, err := testClient.CoreV1().Endpoints("test-ns").Create(ctx, fakeEndpoints, metav1.CreateOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				Eventually(reconciler.called).Should(Receive(Equal(fakeEndpoints)))
 			})
@@ -87,7 +90,7 @@ var _ = Describe("KnownHostsController", func() {
 							{IP: "1.1.1.1", Hostname: "master-0"},
 						},
 					}}
-					_, err := testClient.CoreV1().Endpoints("test-ns").Update(fakeEndpoints)
+					_, err := testClient.CoreV1().Endpoints("test-ns").Update(ctx, fakeEndpoints, metav1.UpdateOptions{})
 					Expect(err).NotTo(HaveOccurred())
 				})
 				It("calls Reconcile", func() {
@@ -96,7 +99,7 @@ var _ = Describe("KnownHostsController", func() {
 			})
 			When("endpoints are deleted", func() {
 				JustBeforeEach(func() {
-					Expect(testClient.CoreV1().Endpoints("test-ns").Delete("agent", nil)).To(Succeed())
+					Expect(testClient.CoreV1().Endpoints("test-ns").Delete(ctx, "agent", metav1.DeleteOptions{})).To(Succeed())
 				})
 				It("does not call Reconcile", func() {
 					Consistently(reconciler.called).ShouldNot(Receive())

@@ -82,7 +82,7 @@ ${GOBIN}/ginkgo:
 
 .PHONY: ${GOBIN}/golangci-lint
 ${GOBIN}/golangci-lint:
-	go install -modfile tools/go.mod -i github.com/golangci/golangci-lint/cmd/golangci-lint
+	go install -modfile tools/go.mod github.com/golangci/golangci-lint/cmd/golangci-lint
 
 ${GOBIN}/loadmaster:
 	go install -modfile tools/go.mod github.com/bradfordboyle/loadmaster

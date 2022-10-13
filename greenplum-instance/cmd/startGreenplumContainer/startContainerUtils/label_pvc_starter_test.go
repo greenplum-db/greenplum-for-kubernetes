@@ -52,7 +52,7 @@ var _ = Describe("LabelPVCStarter", func() {
 		Expect(vfs.MkdirAll(memoryfs, "/var/run/secrets/kubernetes.io/serviceaccount", 0777)).To(Succeed())
 		Expect(vfs.WriteFile(memoryfs, "/var/run/secrets/kubernetes.io/serviceaccount/namespace", []byte("test-ns"), 0666))
 
-		reactiveClient = reactive.NewClient(fakeClient.NewFakeClientWithScheme(clientgoscheme.Scheme), clientgoscheme.Scheme)
+		reactiveClient = reactive.NewClient(fakeClient.NewFakeClientWithScheme(clientgoscheme.Scheme))
 
 		pod = corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{

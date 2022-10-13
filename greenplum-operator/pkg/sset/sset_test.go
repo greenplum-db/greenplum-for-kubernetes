@@ -147,7 +147,7 @@ var _ = Describe("GreenplumCluster StatefulSet spec", func() {
 			},
 		}
 		expectedProbe := &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				TCPSocket: &corev1.TCPSocketAction{
 					Port: intstr.FromInt(22),
 				},
@@ -200,7 +200,7 @@ var _ = Describe("GreenplumCluster StatefulSet spec", func() {
 	When("a readiness probe already exists", func() {
 		BeforeEach(func() {
 			subject.Spec.Template.Spec.Containers[0].ReadinessProbe = &corev1.Probe{
-				Handler: corev1.Handler{
+				ProbeHandler: corev1.ProbeHandler{
 					Exec:    &corev1.ExecAction{Command: []string{"i shouldn't be here"}},
 					HTTPGet: &corev1.HTTPGetAction{Host: "twinkie"},
 					TCPSocket: &corev1.TCPSocketAction{
@@ -218,9 +218,9 @@ var _ = Describe("GreenplumCluster StatefulSet spec", func() {
 		})
 		It("reconciles only the fields we care about", func() {
 			reconciledProbe := subject.Spec.Template.Spec.Containers[0].ReadinessProbe
-			Expect(reconciledProbe.Handler.Exec).To(BeNil(), "should be deleted")
-			Expect(reconciledProbe.Handler.HTTPGet).To(BeNil(), "should be deleted")
-			Expect(reconciledProbe.Handler.TCPSocket).To(gstruct.PointTo(Equal(corev1.TCPSocketAction{
+			Expect(reconciledProbe.ProbeHandler.Exec).To(BeNil(), "should be deleted")
+			Expect(reconciledProbe.ProbeHandler.HTTPGet).To(BeNil(), "should be deleted")
+			Expect(reconciledProbe.ProbeHandler.TCPSocket).To(gstruct.PointTo(Equal(corev1.TCPSocketAction{
 				Port: intstr.FromInt(22), // overwrite
 			})))
 			Expect(reconciledProbe.InitialDelaySeconds).To(BeNumerically("==", 5), "overwrite")

@@ -45,7 +45,7 @@ var _ = Describe("Reconcile pod service account for GreenplumCluster", func() {
 	var reconcileErr error
 	JustBeforeEach(func() {
 		Expect(reactiveClient.Create(ctx, greenplumCluster)).To(Succeed())
-		_, reconcileErr = greenplumReconciler.Reconcile(greenplumClusterRequest)
+		_, reconcileErr = greenplumReconciler.Reconcile(context.TODO(), greenplumClusterRequest)
 	})
 
 	When("we expect a service account, role, and rolebinding for greenplum cluster pods to exist after Reconcile", func() {
@@ -110,7 +110,7 @@ var _ = Describe("Reconcile pod service account for GreenplumCluster", func() {
 		When("the serviceaccount, role, and rolebinding already exist", func() {
 			var updateOccurred bool
 			BeforeEach(func() {
-				_, reconcileErr = greenplumReconciler.Reconcile(greenplumClusterRequest)
+				_, reconcileErr = greenplumReconciler.Reconcile(context.TODO(), greenplumClusterRequest)
 				Expect(reconcileErr).NotTo(HaveOccurred())
 
 				reactiveClient.PrependReactor("update", "serviceaccounts", func(action testing.Action) (handled bool, ret runtime.Object, err error) {

@@ -3,7 +3,6 @@ package v1beta1_test
 import (
 	"bytes"
 
-	"github.com/go-openapi/validate"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	greenplumv1beta1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1beta1"
@@ -13,6 +12,7 @@ import (
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apiserver/validation"
+	"k8s.io/kube-openapi/pkg/validation/validate"
 )
 
 var _ = Describe("GreenplumPXFService validation", func() {

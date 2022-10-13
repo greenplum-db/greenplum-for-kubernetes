@@ -35,7 +35,7 @@ var _ = Describe("HandleValidate", func() {
 		logBuf  *gbytes.Buffer
 	)
 	JustBeforeEach(func() {
-		reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+		reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme))
 		subject = admission.Handler{
 			KubeClient:     reactiveClient,
 			PodCmdExecutor: &fakePodExec.PodExec{StdoutResult: "0\n"},

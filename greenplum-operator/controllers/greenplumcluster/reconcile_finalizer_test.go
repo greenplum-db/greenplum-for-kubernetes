@@ -55,7 +55,7 @@ var _ = Describe("Reconcile stopcluster.greenplumclusters.pivotal.io finalizer",
 	var reconcileErr error
 	JustBeforeEach(func() {
 		Expect(reactiveClient.Create(ctx, greenplumCluster)).To(Succeed())
-		_, reconcileErr = greenplumReconciler.Reconcile(greenplumClusterRequest)
+		_, reconcileErr = greenplumReconciler.Reconcile(context.TODO(), greenplumClusterRequest)
 	})
 
 	It("Succeeds", func() {

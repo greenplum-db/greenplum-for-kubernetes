@@ -2,8 +2,6 @@ package hostpod_test
 
 import (
 	"errors"
-	"path/filepath"
-
 	"github.com/blang/vfs"
 	"github.com/blang/vfs/memfs"
 	"github.com/greenplum-db/gp-common-go-libs/structmatcher"
@@ -16,6 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/testing"
+	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -78,7 +77,7 @@ var _ = Describe("GetThisPod", func() {
 		// 2nd pod with a different name
 		operatorPod2 := operatorPod.DeepCopy()
 		operatorPod2.Name = "greenplum-operator2"
-		reactiveClient = reactive.NewClient(fake.NewFakeClientWithScheme(scheme.Scheme, operatorPod2), scheme.Scheme)
+		reactiveClient = reactive.NewClient(fake.NewFakeClientWithScheme(scheme.Scheme, operatorPod2))
 	})
 
 	When("there is a pod named with our hostname", func() {
@@ -94,7 +93,7 @@ var _ = Describe("GetThisPod", func() {
 
 	When("there are no matching pods", func() {
 		BeforeEach(func() {
-			reactiveClient = reactive.NewClient(fake.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+			reactiveClient = reactive.NewClient(fake.NewFakeClientWithScheme(scheme.Scheme))
 		})
 		It("returns an error", func() {
 			_, err := hostpod.GetThisPod(nil, reactiveClient, testNS, fakehostname)

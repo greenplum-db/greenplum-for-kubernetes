@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-openapi/validate"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	greenplumv1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1"
@@ -16,6 +15,7 @@ import (
 	"k8s.io/apiextensions-apiserver/pkg/apiserver/validation"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/kube-openapi/pkg/validation/validate"
 )
 
 var _ = Describe("GreenplumCluster validation", func() {

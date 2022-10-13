@@ -31,7 +31,7 @@ var _ = Describe("validateUpdateGreenplumCluster", func() {
 		logBuf  *gbytes.Buffer
 	)
 	BeforeEach(func() {
-		reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+		reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme))
 		subject = admission.Handler{
 			KubeClient:     reactiveClient,
 			PodCmdExecutor: &fake.PodExec{StdoutResult: "0\n"},
@@ -72,7 +72,7 @@ var _ = Describe("validateUpdateGreenplumCluster", func() {
 			newGreenplum   *greenplumv1.GreenplumCluster
 		)
 		BeforeEach(func() {
-			reactiveClient = reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+			reactiveClient = reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme))
 			subject.KubeClient = reactiveClient
 
 			oldGreenplum = exampleGreenplum.DeepCopy()

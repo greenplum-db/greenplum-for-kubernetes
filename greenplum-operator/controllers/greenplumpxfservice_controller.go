@@ -31,8 +31,7 @@ type GreenplumPXFServiceReconciler struct {
 // +kubebuilder:rbac:groups=greenplum.pivotal.io,resources=greenplumpxfservices,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=greenplum.pivotal.io,resources=greenplumpxfservices/status,verbs=get;update;patch
 
-func (r *GreenplumPXFServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *GreenplumPXFServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("greenplumpxfservice", req.NamespacedName)
 
 	// check image version

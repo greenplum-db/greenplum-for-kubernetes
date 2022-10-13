@@ -68,7 +68,7 @@ var _ = Describe("Validating Admission Webhook", func() {
 			},
 		}
 
-		reactiveClient = reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+		reactiveClient = reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme))
 		subject = admission.Webhook{
 			KubeClient:      reactiveClient,
 			Namespace:       "test-ns",
@@ -230,7 +230,7 @@ var _ = Describe("Validating Admission Webhook", func() {
 	Describe("ReconcileValidatingWebhookConfiguration", func() {
 		var reactiveClient *reactive.Client
 		BeforeEach(func() {
-			reactiveClient = reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+			reactiveClient = reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme))
 			subject.KubeClient = reactiveClient
 		})
 		When("all is good", func() {

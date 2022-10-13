@@ -87,7 +87,7 @@ func (g *CertificateGenerator) ApproveCertificateSigningRequest(csr *v1beta1.Cer
 		Message: "certificate approved by Greenplum Operator",
 	}
 	csr.Status.Conditions = append(csr.Status.Conditions, approvalCondition)
-	return g.KubeClientSet.CertificatesV1beta1().CertificateSigningRequests().UpdateApproval(csr)
+	return g.KubeClientSet.CertificatesV1beta1().CertificateSigningRequests().UpdateApproval(context.Background(), csr, metav1.UpdateOptions{})
 }
 
 func (g *CertificateGenerator) WaitForSignedCertificate(csr *v1beta1.CertificateSigningRequest, timeout time.Duration) ([]byte, error) {

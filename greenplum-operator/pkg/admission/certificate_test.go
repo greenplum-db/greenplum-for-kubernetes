@@ -1,6 +1,7 @@
 package admission_test
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -31,6 +32,7 @@ import (
 var _ = Describe("CertificateGenerator", func() {
 
 	var (
+		ctx             context.Context
 		subject         *admission.CertificateGenerator
 		simpleClientSet *testclient.Clientset
 		reactiveClient  *reactive.Client
@@ -38,8 +40,9 @@ var _ = Describe("CertificateGenerator", func() {
 	)
 
 	BeforeEach(func() {
+		ctx = context.WithValue(context.Background(), struct{ key string }{"test"}, CurrentGinkgoTestDescription().TestText)
 		simpleClientSet = testclient.NewSimpleClientset()
-		reactiveClient = reactive.NewClient(fake.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+		reactiveClient = reactive.NewClient(fake.NewFakeClientWithScheme(scheme.Scheme))
 
 		fakeOwner = &apiextensionsv1.CustomResourceDefinition{
 			TypeMeta: metav1.TypeMeta{
@@ -177,7 +180,7 @@ var _ = Describe("CertificateGenerator", func() {
 						certificates.UsageServerAuth},
 				},
 			}
-			_, err := simpleClientSet.CertificatesV1beta1().CertificateSigningRequests().Create(csr)
+			_, err := simpleClientSet.CertificatesV1beta1().CertificateSigningRequests().Create(ctx, csr, metav1.CreateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -186,7 +189,7 @@ var _ = Describe("CertificateGenerator", func() {
 				csrWithCert, err := subject.ApproveCertificateSigningRequest(csr)
 				Expect(err).NotTo(HaveOccurred())
 
-				csrWithCertResult, err := subject.KubeClientSet.CertificatesV1beta1().CertificateSigningRequests().Get(admission.CSRName, metav1.GetOptions{})
+				csrWithCertResult, err := subject.KubeClientSet.CertificatesV1beta1().CertificateSigningRequests().Get(ctx, admission.CSRName, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(csrWithCert).To(structmatcher.MatchStruct(csrWithCertResult))
 
@@ -235,7 +238,7 @@ var _ = Describe("CertificateGenerator", func() {
 					}},
 				},
 			}
-			_, err := simpleClientSet.CertificatesV1beta1().CertificateSigningRequests().Create(csr)
+			_, err := simpleClientSet.CertificatesV1beta1().CertificateSigningRequests().Create(ctx, csr, metav1.CreateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -244,7 +247,7 @@ var _ = Describe("CertificateGenerator", func() {
 				// this step is necessary because the simple client set does not fill in the certificate upon approval
 				// the approval controller is responsible for filling in certs when csr's are marked approved
 				csr.Status.Certificate = []byte("certificate")
-				_, err := simpleClientSet.CertificatesV1beta1().CertificateSigningRequests().Update(csr)
+				_, err := simpleClientSet.CertificatesV1beta1().CertificateSigningRequests().Update(ctx, csr, metav1.UpdateOptions{})
 				Expect(err).NotTo(HaveOccurred())
 			})
 

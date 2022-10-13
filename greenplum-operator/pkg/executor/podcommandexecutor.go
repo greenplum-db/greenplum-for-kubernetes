@@ -20,7 +20,7 @@ func NewPodExec(scheme *runtime.Scheme, config *rest.Config) PodExecInterface {
 	codecFactory := serializer.NewCodecFactory(scheme)
 	//parameterCodec := runtime.NewParameterCodec(scheme)
 	podGVK, _ := apiutil.GVKForObject(&corev1.Pod{}, scheme)
-	podRestInterface, _ := apiutil.RESTClientForGVK(podGVK, config, codecFactory)
+	podRestInterface, _ := apiutil.RESTClientForGVK(podGVK, false, config, codecFactory)
 
 	podExec := &PodExecRESTClient{
 		RestCfg:    config,

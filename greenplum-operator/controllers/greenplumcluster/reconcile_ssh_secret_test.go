@@ -52,7 +52,7 @@ var _ = Describe("Greenplum Controller for ssh-secrets", func() {
 	var reconcileErr error
 	JustBeforeEach(func() {
 		Expect(reactiveClient.Create(ctx, greenplumCluster)).To(Succeed())
-		_, reconcileErr = greenplumReconciler.Reconcile(greenplumClusterRequest)
+		_, reconcileErr = greenplumReconciler.Reconcile(context.TODO(), greenplumClusterRequest)
 	})
 
 	When("we expect a secret to exist after Reconcile", func() {

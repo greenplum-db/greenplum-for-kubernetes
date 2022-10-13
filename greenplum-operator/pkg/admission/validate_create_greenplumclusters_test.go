@@ -35,7 +35,7 @@ var _ = Describe("validateCreateGreenplumCluster", func() {
 	)
 
 	BeforeEach(func() {
-		reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+		reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme))
 		subject = admission.Handler{
 			KubeClient: reactiveClient,
 		}
@@ -193,7 +193,7 @@ var _ = Describe("validateCreateGreenplumCluster", func() {
 			})
 			When("greenplum-major-version label does not match the expected value on segment-a sset PVCs", func() {
 				BeforeEach(func() {
-					reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+					reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme))
 					subject.KubeClient = reactiveClient
 
 					correctPVCLabels := generateGPDBLabels(map[string]string{"greenplum-major-version": greenplumcluster.SupportedGreenplumMajorVersion})
@@ -216,7 +216,7 @@ var _ = Describe("validateCreateGreenplumCluster", func() {
 			})
 			When("greenplum-major-version label does not match the expected value on segment-b sset PVCs", func() {
 				BeforeEach(func() {
-					reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+					reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme))
 					subject.KubeClient = reactiveClient
 
 					correctPVCLabels := generateGPDBLabels(map[string]string{"greenplum-major-version": greenplumcluster.SupportedGreenplumMajorVersion})
@@ -239,7 +239,7 @@ var _ = Describe("validateCreateGreenplumCluster", func() {
 			})
 			When("greenplum-major-version label is present, but does not match the expected value", func() {
 				BeforeEach(func() {
-					reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+					reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme))
 					subject.KubeClient = reactiveClient
 					createGPDBTestPVCs(reactiveClient, 2, 2, 2,
 						map[string]string{"greenplum-major-version": "4"})
@@ -256,7 +256,7 @@ var _ = Describe("validateCreateGreenplumCluster", func() {
 			})
 			When("greenplum-major-version label is not present", func() {
 				BeforeEach(func() {
-					reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+					reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme))
 					subject.KubeClient = reactiveClient
 					createGPDBTestPVCs(reactiveClient, 2, 2, 2, nil)
 				})
@@ -449,7 +449,7 @@ var _ = Describe("validateCreateGreenplumCluster", func() {
 
 	When("clusterExistsInNamespace check fails", func() {
 		BeforeEach(func() {
-			reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+			reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme))
 			reactiveClient.PrependReactor("list", "greenplumclusters", func(action testing.Action) (handled bool, ret runtime.Object, err error) {
 				return true, nil, errors.New("custom statefulset error")
 			})
@@ -470,7 +470,7 @@ var _ = Describe("validateCreateGreenplumCluster", func() {
 
 	When("a gpinstance exists", func() {
 		BeforeEach(func() {
-			reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme), scheme.Scheme)
+			reactiveClient := reactive.NewClient(fakeClient.NewFakeClientWithScheme(scheme.Scheme))
 			reactiveClient.PrependReactor("list", "greenplumclusters", func(action testing.Action) (handled bool, ret runtime.Object, err error) {
 				list := &greenplumv1.GreenplumClusterList{Items: []greenplumv1.GreenplumCluster{{}}}
 				return true, list, nil

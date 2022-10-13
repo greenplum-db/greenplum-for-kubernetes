@@ -19,14 +19,28 @@ import (
 
 type Client struct {
 	testing.Fake
-	delegate     client.Client
-	clientScheme *runtime.Scheme
-	restMapper   meta.RESTMapper
+	delegate   client.Client
+	restMapper meta.RESTMapper
 }
 
 var _ client.Client = &Client{}
 
-func NewClient(delegate client.Client, clientScheme *runtime.Scheme) *Client {
+func (r *Client) Scheme() *runtime.Scheme {
+	return r.delegate.Scheme()
+}
+
+func (r *Client) RESTMapper() meta.RESTMapper {
+	return r.restMapper
+}
+
+// Workaround for testing.ListAction missing GetKind(). It looks like an oversight.
+type workaroundListAction interface {
+	testing.ListAction
+	GetKind() schema.GroupVersionKind
+}
+
+func NewClient(delegate client.Client) *Client {
+	clientScheme := delegate.Scheme()
 	gvs := clientScheme.PrioritizedVersionsAllGroups()
 	restMapper := meta.NewDefaultRESTMapper(gvs)
 	knownTypes := clientScheme.AllKnownTypes()
@@ -35,16 +49,15 @@ func NewClient(delegate client.Client, clientScheme *runtime.Scheme) *Client {
 	}
 
 	r := &Client{
-		delegate:     delegate,
-		clientScheme: clientScheme,
-		restMapper:   restMapper,
+		delegate:   delegate,
+		restMapper: restMapper,
 	}
 
 	r.PrependReactor("*", "*", func(action testing.Action) (bool, runtime.Object, error) {
 		ctx := context.TODO()
-		// TODO: switch on action.GetVerb() instead.
-		switch a := action.(type) {
-		case testing.GetActionImpl:
+		switch action.GetVerb() {
+		case "get":
+			a := action.(testing.GetAction)
 			key := types.NamespacedName{
 				Name:      a.GetName(),
 				Namespace: a.GetNamespace(),
@@ -52,23 +65,28 @@ func NewClient(delegate client.Client, clientScheme *runtime.Scheme) *Client {
 			obj := r.newNamedObject(r.kindForResource(a.GetResource()), a.GetNamespace(), a.GetName())
 			err := r.delegate.Get(ctx, key, obj)
 			return true, obj, err
-		case testing.CreateActionImpl:
-			err := r.delegate.Create(ctx, a.GetObject())
+		case "create":
+			a := action.(testing.CreateAction)
+			err := r.delegate.Create(ctx, a.GetObject().(client.Object))
 			return true, nil, err
-		case testing.DeleteActionImpl:
+		case "delete":
+			a := action.(testing.DeleteAction)
 			obj := r.newNamedObject(r.kindForResource(a.GetResource()), a.GetNamespace(), a.GetName())
 			err := r.delegate.Delete(ctx, obj)
 			return true, nil, err
-		case testing.UpdateActionImpl:
-			err := r.delegate.Update(ctx, a.GetObject())
+		case "update":
+			a := action.(testing.UpdateAction)
+			err := r.delegate.Update(ctx, a.GetObject().(client.Object))
 			return true, nil, err
-		case testing.PatchActionImpl:
+		case "patch":
+			a := action.(testing.PatchAction)
 			obj := r.newNamedObject(r.kindForResource(a.GetResource()), a.GetNamespace(), a.GetName())
-			patch := client.ConstantPatch(a.GetPatchType(), a.GetPatch())
+			patch := client.RawPatch(a.GetPatchType(), a.GetPatch())
 			err := r.delegate.Patch(ctx, obj, patch)
 			return true, nil, err
-		case testing.ListActionImpl:
-			obj := r.newObject(a.GetKind())
+		case "list":
+			a := action.(workaroundListAction)
+			obj := r.newObjectList(a.GetKind())
 			err := r.delegate.List(ctx, obj,
 				client.MatchingFieldsSelector{Selector: a.GetListRestrictions().Fields},
 				client.MatchingLabelsSelector{Selector: a.GetListRestrictions().Labels},
@@ -83,9 +101,9 @@ func NewClient(delegate client.Client, clientScheme *runtime.Scheme) *Client {
 	return r
 }
 
-func (r *Client) gvrForObject(obj runtime.Object) schema.GroupVersionResource {
+func (r *Client) gvrForObject(obj client.Object) schema.GroupVersionResource {
 	defer GinkgoRecover()
-	kinds, _, err := r.clientScheme.ObjectKinds(obj)
+	kinds, _, err := r.Scheme().ObjectKinds(obj)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(kinds).To(HaveLen(1))
 	gvk := kinds[0]
@@ -104,47 +122,55 @@ func (r *Client) kindForResource(resource schema.GroupVersionResource) schema.Gr
 	return kind
 }
 
-func (r *Client) newNamedObject(kind schema.GroupVersionKind, namespace, name string) runtime.Object {
+func (r *Client) newNamedObject(kind schema.GroupVersionKind, namespace, name string) client.Object {
 	defer GinkgoRecover()
-	obj := r.newObject(kind)
-	mo, err := meta.Accessor(obj)
+	rObj := r.newRuntimeObject(kind)
+	cObj, ok := rObj.(client.Object)
+	Expect(ok).To(BeTrue(), "Expected object to implement client.Object. Does it implement metav1.Object?")
+	cObj.SetNamespace(namespace)
+	cObj.SetName(name)
+	return cObj
+}
+
+func (r *Client) newObjectList(kind schema.GroupVersionKind) client.ObjectList {
+	defer GinkgoRecover()
+	rObj := r.newRuntimeObject(kind)
+	cObj, ok := rObj.(client.ObjectList)
+	Expect(ok).To(BeTrue(), "Expected object to implement client.ObjectList. Does it implement metav1.ListInterface?")
+	return cObj
+}
+
+func (r *Client) newRuntimeObject(kind schema.GroupVersionKind) runtime.Object {
+	defer GinkgoRecover()
+	obj, err := r.Scheme().New(kind)
 	Expect(err).NotTo(HaveOccurred())
-	mo.SetNamespace(namespace)
-	mo.SetName(name)
 	return obj
 }
 
-func (r *Client) newObject(kind schema.GroupVersionKind) runtime.Object {
-	defer GinkgoRecover()
-	obj, err := r.clientScheme.New(kind)
-	Expect(err).NotTo(HaveOccurred())
-	return obj
-}
-
-func (r *Client) populateGVK(obj runtime.Object) {
+func (r *Client) populateGVK(obj client.Object) {
 	defer GinkgoRecover()
 	// Set GVK using reflection. Normally the apiserver would populate this, but we need it earlier.
-	gvk, err := apiutil.GVKForObject(obj, r.clientScheme)
+	gvk, err := apiutil.GVKForObject(obj, r.Scheme())
 	Expect(err).NotTo(HaveOccurred())
 	obj.GetObjectKind().SetGroupVersionKind(gvk)
 }
 
-func (r *Client) Get(ctx context.Context, key client.ObjectKey, obj runtime.Object) error {
+func (r *Client) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
 	action := testing.NewGetAction(r.gvrForObject(obj), key.Namespace, key.Name)
 	retrievedObj, err := r.Invokes(action, nil)
 	if err != nil {
 		return err
 	}
-	return r.clientScheme.Convert(retrievedObj, obj, nil)
+	return r.Scheme().Convert(retrievedObj, obj, nil)
 }
 
-func (r *Client) List(ctx context.Context, list runtime.Object, opts ...client.ListOption) error {
+func (r *Client) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
 	defer GinkgoRecover()
 
 	listOpts := client.ListOptions{}
 	listOpts.ApplyOptions(opts)
 
-	listGvk, err := apiutil.GVKForObject(list, r.clientScheme)
+	listGvk, err := apiutil.GVKForObject(list, r.Scheme())
 	if err != nil {
 		return err
 	}
@@ -163,10 +189,10 @@ func (r *Client) List(ctx context.Context, list runtime.Object, opts ...client.L
 	if err != nil {
 		return err
 	}
-	return r.clientScheme.Convert(retrievedObj, list, nil)
+	return r.Scheme().Convert(retrievedObj, list, nil)
 }
 
-func (r *Client) Create(ctx context.Context, obj runtime.Object, opts ...client.CreateOption) error {
+func (r *Client) Create(ctx context.Context, obj client.Object, opts ...client.CreateOption) error {
 	defer GinkgoRecover()
 	Expect(opts).To(BeEmpty(), "we can't handle opts")
 	object, err := meta.Accessor(obj)
@@ -181,7 +207,7 @@ func (r *Client) Create(ctx context.Context, obj runtime.Object, opts ...client.
 	return err
 }
 
-func (r *Client) Delete(ctx context.Context, obj runtime.Object, opts ...client.DeleteOption) error {
+func (r *Client) Delete(ctx context.Context, obj client.Object, opts ...client.DeleteOption) error {
 	defer GinkgoRecover()
 
 	// TODO: We are just dropping these options on the floor... this is the same thing
@@ -200,11 +226,11 @@ func (r *Client) Delete(ctx context.Context, obj runtime.Object, opts ...client.
 	return err
 }
 
-func (r *Client) DeleteAllOf(ctx context.Context, obj runtime.Object, opts ...client.DeleteAllOfOption) error {
+func (r *Client) DeleteAllOf(ctx context.Context, obj client.Object, opts ...client.DeleteAllOfOption) error {
 	panic("implement me")
 }
 
-func (r *Client) Update(ctx context.Context, obj runtime.Object, opts ...client.UpdateOption) error {
+func (r *Client) Update(ctx context.Context, obj client.Object, opts ...client.UpdateOption) error {
 	defer GinkgoRecover()
 	Expect(opts).To(BeEmpty(), "we can't handle opts")
 	object, err := meta.Accessor(obj)
@@ -219,7 +245,7 @@ func (r *Client) Update(ctx context.Context, obj runtime.Object, opts ...client.
 	return err
 }
 
-func (r *Client) Patch(ctx context.Context, obj runtime.Object, patch client.Patch, opts ...client.PatchOption) error {
+func (r *Client) Patch(ctx context.Context, obj client.Object, patch client.Patch, opts ...client.PatchOption) error {
 	defer GinkgoRecover()
 	Expect(opts).To(BeEmpty(), "we can't handle opts")
 	object, err := meta.Accessor(obj)

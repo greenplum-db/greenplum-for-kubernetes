@@ -55,7 +55,7 @@ func ModifyDeployment(greenplumPXF greenplumv1beta1.GreenplumPXFService, deploym
 	if container.ReadinessProbe == nil {
 		container.ReadinessProbe = &corev1.Probe{}
 	}
-	container.ReadinessProbe.Handler = corev1.Handler{
+	container.ReadinessProbe.ProbeHandler = corev1.ProbeHandler{
 		Exec: &corev1.ExecAction{Command: []string{"/usr/local/pxf-gp6/bin/pxf", "status"}},
 	}
 	container.ReadinessProbe.InitialDelaySeconds = 30

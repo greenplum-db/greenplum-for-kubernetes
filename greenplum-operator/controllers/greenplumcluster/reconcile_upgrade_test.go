@@ -46,7 +46,7 @@ var _ = Describe("Reconcile GreenplumCluster status", func() {
 			reconciledCluster greenplumv1.GreenplumCluster
 		)
 		JustBeforeEach(func() {
-			_, reconcileErr = newGreenplumReconciler.Reconcile(greenplumClusterRequest)
+			_, reconcileErr = newGreenplumReconciler.Reconcile(context.TODO(), greenplumClusterRequest)
 			Expect(reactiveClient.Get(ctx, greenplumClusterRequest.NamespacedName, &reconciledCluster)).To(Succeed())
 		})
 		It("succeeds", func() {
@@ -76,7 +76,7 @@ func CreateClusterWithOldImages(prototypeReconciler greenplumcluster.GreenplumCl
 	greenplumCluster := exampleGreenplumCluster.DeepCopy()
 	Expect(reactiveClient.Create(nil, greenplumCluster)).To(Succeed())
 
-	_, reconcileErr := oldGreenplumReconciler.Reconcile(greenplumClusterRequest)
+	_, reconcileErr := oldGreenplumReconciler.Reconcile(context.TODO(), greenplumClusterRequest)
 	Expect(reconcileErr).NotTo(HaveOccurred())
 
 	Expect(reactiveClient.Get(nil, greenplumClusterRequest.NamespacedName, greenplumCluster)).To(Succeed())

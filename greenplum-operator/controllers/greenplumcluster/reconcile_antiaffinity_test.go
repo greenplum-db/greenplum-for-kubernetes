@@ -1,6 +1,7 @@
 package greenplumcluster_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -31,6 +32,7 @@ var _ = Describe("antiAffinity tests", func() {
 
 		logBuf              *gbytes.Buffer
 		greenplumReconciler *greenplumcluster.GreenplumClusterReconciler
+		ctx                 context.Context
 	)
 
 	BeforeEach(func() {
@@ -75,10 +77,11 @@ var _ = Describe("antiAffinity tests", func() {
 		}
 
 		logBuf = gbytes.NewBuffer()
+		ctx = context.WithValue(context.Background(), struct{ key string }{"test"}, CurrentGinkgoTestDescription().TestText)
 	})
 
 	JustBeforeEach(func() {
-		reactiveClient = reactive.NewClient(fake.NewFakeClientWithScheme(scheme.Scheme, testNodes), scheme.Scheme)
+		reactiveClient = reactive.NewClient(fake.NewFakeClientWithScheme(scheme.Scheme, testNodes))
 		Expect(reactiveClient.Create(nil, fakeGreenplumClusterSpec)).To(Succeed())
 		greenplumReconciler = &greenplumcluster.GreenplumClusterReconciler{
 			Client:        reactiveClient,
@@ -100,21 +103,21 @@ var _ = Describe("antiAffinity tests", func() {
 			})
 			When("at least 2 worker nodes for master and segment are available", func() {
 				It("succeeds and labels nodes", func() {
-					Expect(greenplumReconciler.Reconcile(greenplumClusterRequest)).To(Equal(ctrl.Result{}))
+					Expect(greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)).To(Equal(ctrl.Result{}))
 					checkNodeLabels(fakeGreenplumClusterSpec)
 				})
 			})
 			When("gpdb cluster resources already exist", func() {
 				var nodePatched bool
 				JustBeforeEach(func() {
-					Expect(greenplumReconciler.Reconcile(greenplumClusterRequest)).To(Equal(ctrl.Result{}))
+					Expect(greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)).To(Equal(ctrl.Result{}))
 					reactiveClient.PrependReactor("patch", "nodes", func(action testing.Action) (handled bool, ret runtime.Object, err error) {
 						nodePatched = true
 						return false, nil, nil
 					})
 				})
 				It("does not label the nodes with antiaffinity labels", func() {
-					Expect(greenplumReconciler.Reconcile(greenplumClusterRequest)).To(Equal(ctrl.Result{}))
+					Expect(greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)).To(Equal(ctrl.Result{}))
 					Expect(nodePatched).To(BeFalse())
 				})
 			})
@@ -132,7 +135,7 @@ var _ = Describe("antiAffinity tests", func() {
 					})
 				})
 				It("returns an error", func() {
-					reconcileResult, err := greenplumReconciler.Reconcile(greenplumClusterRequest)
+					reconcileResult, err := greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 					Expect(reconcileResult).To(Equal(ctrl.Result{}))
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(Equal("unable to check if GreenplumCluster resources exist: " + errMsg))
@@ -148,7 +151,7 @@ var _ = Describe("antiAffinity tests", func() {
 					}
 				})
 				It("returns an error", func() {
-					reconcileResult, err := greenplumReconciler.Reconcile(greenplumClusterRequest)
+					reconcileResult, err := greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 					Expect(reconcileResult).To(Equal(ctrl.Result{}))
 					Expect(err).To(HaveOccurred())
 					expectedErrMsg := fmt.Sprintf(greenplumcluster.NodeCountErrorFmt, 0, 0)
@@ -181,7 +184,7 @@ var _ = Describe("antiAffinity tests", func() {
 					}
 				})
 				It("returns an error", func() {
-					reconcileResult, err := greenplumReconciler.Reconcile(greenplumClusterRequest)
+					reconcileResult, err := greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 					Expect(reconcileResult).To(Equal(ctrl.Result{}))
 					Expect(err).To(HaveOccurred())
 					expectedErrMsg := fmt.Sprintf(greenplumcluster.NodeCountErrorFmt, 1, 2)
@@ -214,7 +217,7 @@ var _ = Describe("antiAffinity tests", func() {
 					}
 				})
 				It("returns an error", func() {
-					reconcileResult, err := greenplumReconciler.Reconcile(greenplumClusterRequest)
+					reconcileResult, err := greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 					Expect(reconcileResult).To(Equal(ctrl.Result{}))
 					Expect(err).To(HaveOccurred())
 					expectedErrMsg := fmt.Sprintf(greenplumcluster.NodeCountErrorFmt, 2, 1)
@@ -235,7 +238,7 @@ var _ = Describe("antiAffinity tests", func() {
 					})
 				})
 				It("returns an error", func() {
-					reconcileResult, err := greenplumReconciler.Reconcile(greenplumClusterRequest)
+					reconcileResult, err := greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 					Expect(reconcileResult).To(Equal(ctrl.Result{}))
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(Equal("antiAffinity: master node worker selector list: " + errMsg))
@@ -255,7 +258,7 @@ var _ = Describe("antiAffinity tests", func() {
 					})
 				})
 				It("returns an error", func() {
-					reconcileResult, err := greenplumReconciler.Reconcile(greenplumClusterRequest)
+					reconcileResult, err := greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 					Expect(reconcileResult).To(Equal(ctrl.Result{}))
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(Equal("antiAffinity: segment node worker selector list: " + errMsg))
@@ -275,7 +278,7 @@ var _ = Describe("antiAffinity tests", func() {
 					})
 				})
 				It("returns an error", func() {
-					reconcileResult, err := greenplumReconciler.Reconcile(greenplumClusterRequest)
+					reconcileResult, err := greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 					Expect(reconcileResult).To(Equal(ctrl.Result{}))
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(MatchRegexp("antiAffinity: failed to add label '.+=.+' to node '.+': " + errMsg))
@@ -295,7 +298,7 @@ var _ = Describe("antiAffinity tests", func() {
 					})
 				})
 				It("returns an error", func() {
-					reconcileResult, err := greenplumReconciler.Reconcile(greenplumClusterRequest)
+					reconcileResult, err := greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 					Expect(reconcileResult).To(Equal(ctrl.Result{}))
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(MatchRegexp("antiAffinity: failed to add label '.+=.+' to node '.+': " + errMsg))
@@ -310,7 +313,7 @@ var _ = Describe("antiAffinity tests", func() {
 			})
 			When("at least 2 worker nodes for master and segment are available", func() {
 				It("succeeds and labels nodes", func() {
-					Expect(greenplumReconciler.Reconcile(greenplumClusterRequest)).To(Equal(ctrl.Result{}))
+					Expect(greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)).To(Equal(ctrl.Result{}))
 					checkNodeLabels(fakeGreenplumClusterSpec)
 				})
 			})
@@ -333,7 +336,7 @@ var _ = Describe("antiAffinity tests", func() {
 					}
 				})
 				It("returns an error", func() {
-					reconcileResult, err := greenplumReconciler.Reconcile(greenplumClusterRequest)
+					reconcileResult, err := greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 					Expect(reconcileResult).To(Equal(ctrl.Result{}))
 					Expect(err).To(HaveOccurred())
 					expectedErrMsg := fmt.Sprintf(greenplumcluster.NodeCountErrorFmt, 1, 2)
@@ -349,7 +352,7 @@ var _ = Describe("antiAffinity tests", func() {
 			})
 			When("at least 2 worker nodes for master and segment are available", func() {
 				It("succeeds and labels nodes", func() {
-					Expect(greenplumReconciler.Reconcile(greenplumClusterRequest)).To(Equal(ctrl.Result{}))
+					Expect(greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)).To(Equal(ctrl.Result{}))
 					checkNodeLabels(fakeGreenplumClusterSpec)
 				})
 			})
@@ -372,7 +375,7 @@ var _ = Describe("antiAffinity tests", func() {
 					}
 				})
 				It("returns an error", func() {
-					reconcileResult, err := greenplumReconciler.Reconcile(greenplumClusterRequest)
+					reconcileResult, err := greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 					Expect(reconcileResult).To(Equal(ctrl.Result{}))
 					Expect(err).To(HaveOccurred())
 					expectedErrMsg := fmt.Sprintf(greenplumcluster.NodeCountErrorFmt, 2, 1)
@@ -400,7 +403,7 @@ var _ = Describe("antiAffinity tests", func() {
 					}
 				})
 				It("succeeds and labels nodes", func() {
-					Expect(greenplumReconciler.Reconcile(greenplumClusterRequest)).To(Equal(ctrl.Result{}))
+					Expect(greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)).To(Equal(ctrl.Result{}))
 					checkNodeLabels(fakeGreenplumClusterSpec)
 				})
 			})
@@ -417,7 +420,7 @@ var _ = Describe("antiAffinity tests", func() {
 					}
 				})
 				It("returns an error", func() {
-					reconcileResult, err := greenplumReconciler.Reconcile(greenplumClusterRequest)
+					reconcileResult, err := greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 					Expect(reconcileResult).To(Equal(ctrl.Result{}))
 					Expect(err).To(HaveOccurred())
 					expectedErrMsg := fmt.Sprintf(greenplumcluster.NodeCountErrorFmt, 1, 1)
@@ -433,7 +436,7 @@ var _ = Describe("antiAffinity tests", func() {
 				testNodes = exampleValidNodeList
 			})
 			It("returns an error", func() {
-				reconcileResult, err := greenplumReconciler.Reconcile(greenplumClusterRequest)
+				reconcileResult, err := greenplumReconciler.Reconcile(ctx, greenplumClusterRequest)
 				Expect(reconcileResult).To(Equal(ctrl.Result{}))
 				Expect(err).To(HaveOccurred())
 				expectedErrMsg := fmt.Sprintf(greenplumcluster.AntiAffinityMismatchErrorFmt, fakeGreenplumClusterSpec.Spec.Segments.AntiAffinity, fakeGreenplumClusterSpec.Spec.MasterAndStandby.AntiAffinity)
