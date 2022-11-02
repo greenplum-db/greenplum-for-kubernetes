@@ -54,7 +54,7 @@ func (r *GreenplumClusterReconciler) handleExpand(ctx context.Context, greenplum
 	job.Namespace = jobKey.Namespace
 	job.Name = jobKey.Name
 
-	if err := ctrl.SetControllerReference(greenplumCluster, &job, r.Scheme); err != nil {
+	if err := ctrl.SetControllerReference(greenplumCluster, &job, r.Scheme()); err != nil {
 		// not tested: not really possible to fail here
 		return err
 	}

@@ -10,7 +10,6 @@ import (
 	greenplumv1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1"
 	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/controllers/greenplumcluster"
 	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/executor/fake"
-	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/scheme"
 	"github.com/pivotal/greenplum-for-kubernetes/pkg/gplog"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,7 +39,6 @@ var _ = Describe("Greenplum Controller for ssh-secrets", func() {
 
 		greenplumReconciler = &greenplumcluster.GreenplumClusterReconciler{
 			Client:     reactiveClient,
-			Scheme:     scheme.Scheme,
 			Log:        gplog.ForTest(logBuf),
 			SSHCreator: &fakeSecretCreator{},
 			PodExec:    &fake.PodExec{},

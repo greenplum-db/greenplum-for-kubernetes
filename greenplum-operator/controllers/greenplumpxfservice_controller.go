@@ -14,7 +14,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -24,9 +23,10 @@ import (
 type GreenplumPXFServiceReconciler struct {
 	client.Client
 	Log           logr.Logger
-	Scheme        *runtime.Scheme
 	InstanceImage string
 }
+
+var _ client.Client = &GreenplumPXFServiceReconciler{}
 
 // +kubebuilder:rbac:groups=greenplum.pivotal.io,resources=greenplumpxfservices,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=greenplum.pivotal.io,resources=greenplumpxfservices/status,verbs=get;update;patch
@@ -61,7 +61,7 @@ func (r *GreenplumPXFServiceReconciler) Reconcile(ctx context.Context, req ctrl.
 	pxfService.Namespace = greenplumPXF.Namespace
 	result, err := ctrl.CreateOrUpdate(ctx, r, &pxfService, func() error {
 		pxf.ModifyService(greenplumPXF, &pxfService)
-		return controllerutil.SetControllerReference(&greenplumPXF, &pxfService, r.Scheme)
+		return controllerutil.SetControllerReference(&greenplumPXF, &pxfService, r.Scheme())
 	})
 	if err != nil {
 		return ctrl.Result{}, errors.Wrap(err, "unable to CreateOrUpdate PXF Service")
@@ -76,7 +76,7 @@ func (r *GreenplumPXFServiceReconciler) Reconcile(ctx context.Context, req ctrl.
 	pxfDeployment.Namespace = greenplumPXF.Namespace
 	result, err = ctrl.CreateOrUpdate(ctx, r, &pxfDeployment, func() error {
 		pxf.ModifyDeployment(greenplumPXF, &pxfDeployment, r.InstanceImage)
-		return controllerutil.SetControllerReference(&greenplumPXF, &pxfDeployment, r.Scheme)
+		return controllerutil.SetControllerReference(&greenplumPXF, &pxfDeployment, r.Scheme())
 	})
 	if err != nil {
 		return ctrl.Result{}, errors.Wrap(err, "unable to CreateOrUpdate PXF Deployment")

@@ -10,7 +10,6 @@ import (
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gstruct"
 	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1beta1"
-	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/scheme"
 	"github.com/pivotal/greenplum-for-kubernetes/pkg/gplog"
 	. "github.com/pivotal/greenplum-for-kubernetes/pkg/gplog/testing"
 	appsv1 "k8s.io/api/apps/v1"
@@ -56,7 +55,6 @@ var _ = Describe("PXF controller", func() {
 
 		pxfReconciler = &GreenplumPXFServiceReconciler{
 			Client:        reactiveClient,
-			Scheme:        scheme.Scheme,
 			Log:           gplog.ForTest(logBuf),
 			InstanceImage: "greenplum-for-kubernetes:v1.7.5",
 		}

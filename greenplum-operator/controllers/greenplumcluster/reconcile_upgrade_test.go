@@ -10,7 +10,6 @@ import (
 	greenplumv1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1"
 	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/controllers/greenplumcluster"
 	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/executor/fake"
-	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/scheme"
 	"github.com/pivotal/greenplum-for-kubernetes/pkg/gplog"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -29,7 +28,6 @@ var _ = Describe("Reconcile GreenplumCluster status", func() {
 		// using a newer version of the reconciler
 		newGreenplumReconciler = &greenplumcluster.GreenplumClusterReconciler{
 			Client:        reactiveClient,
-			Scheme:        scheme.Scheme,
 			Log:           gplog.ForTest(logBuf),
 			SSHCreator:    fakeSecretCreator{},
 			PodExec:       &fake.PodExec{},

@@ -85,7 +85,6 @@ var _ = Describe("antiAffinity tests", func() {
 		Expect(reactiveClient.Create(nil, fakeGreenplumClusterSpec)).To(Succeed())
 		greenplumReconciler = &greenplumcluster.GreenplumClusterReconciler{
 			Client:        reactiveClient,
-			Scheme:        scheme.Scheme,
 			Log:           gplog.ForTest(logBuf),
 			SSHCreator:    fakeSecretCreator{},
 			PodExec:       &fakeexec.PodExec{},

@@ -79,7 +79,6 @@ func Run() error {
 
 	if err = (&controllers.GreenplumPXFServiceReconciler{
 		Client:        mgr.GetClient(),
-		Scheme:        mgr.GetScheme(),
 		Log:           ctrl.Log.WithName("controllers").WithName("GreenplumPXFService"),
 		InstanceImage: instanceImage,
 	}).SetupWithManager(mgr); err != nil {
@@ -90,7 +89,6 @@ func Run() error {
 	if err = (&greenplumcluster.GreenplumClusterReconciler{
 		Client:        mgr.GetClient(),
 		Log:           ctrl.Log.WithName("controllers").WithName("GreenplumCluster"),
-		Scheme:        mgr.GetScheme(),
 		SSHCreator:    sshkeygen.New(),
 		InstanceImage: instanceImage,
 		OperatorImage: operatorImage,

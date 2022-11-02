@@ -14,7 +14,6 @@ import (
 	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/configmap"
 	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/executor/fake"
 	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/gpexpandjob"
-	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/scheme"
 	"github.com/pivotal/greenplum-for-kubernetes/pkg/gplog"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -39,7 +38,6 @@ var _ = Describe("Reconcile expansion", func() {
 		podExec = &fake.PodExec{}
 		greenplumReconciler = &greenplumcluster.GreenplumClusterReconciler{
 			Client:        reactiveClient,
-			Scheme:        scheme.Scheme,
 			Log:           gplog.ForTest(logBuf),
 			SSHCreator:    fakeSecretCreator{},
 			InstanceImage: "greenplum-for-kubernetes:latest",

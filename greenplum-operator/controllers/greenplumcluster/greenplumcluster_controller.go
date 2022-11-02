@@ -38,13 +38,14 @@ const (
 // GreenplumClusterReconciler reconciles a GreenplumCluster object
 type GreenplumClusterReconciler struct {
 	client.Client
-	Scheme        *runtime.Scheme
 	Log           logr.Logger
 	SSHCreator    sshkeygen.SSHSecretCreator
 	InstanceImage string
 	OperatorImage string
 	PodExec       executor.PodExecInterface
 }
+
+var _ client.Client = &GreenplumClusterReconciler{}
 
 // +kubebuilder:rbac:groups=greenplum.pivotal.io,resources=greenplumclusters,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=greenplum.pivotal.io,resources=greenplumclusters/status,verbs=get;update;patch
@@ -129,7 +130,7 @@ func (r *GreenplumClusterReconciler) createOrUpdateClusterResources(ctx context.
 
 	operationResult, err := ctrl.CreateOrUpdate(ctx, r, configMap, func() error {
 		configmap.ModifyConfigMap(&greenplumCluster, configMap)
-		return controllerutil.SetControllerReference(&greenplumCluster, configMap, r.Scheme)
+		return controllerutil.SetControllerReference(&greenplumCluster, configMap, r.Scheme())
 	})
 	if err != nil {
 		return err
@@ -151,7 +152,7 @@ func (r *GreenplumClusterReconciler) createOrUpdateClusterResources(ctx context.
 			}
 		}
 		sshkeygen.ModifySecret(gpName, sshSecret, keyData)
-		return ctrl.SetControllerReference(&greenplumCluster, sshSecret, r.Scheme)
+		return ctrl.SetControllerReference(&greenplumCluster, sshSecret, r.Scheme())
 	})
 	if err != nil {
 		return err
@@ -166,7 +167,7 @@ func (r *GreenplumClusterReconciler) createOrUpdateClusterResources(ctx context.
 	}
 	operationResult, err = ctrl.CreateOrUpdate(ctx, r, agentService, func() error {
 		service.ModifyGreenplumAgentService(gpName, agentService)
-		return ctrl.SetControllerReference(&greenplumCluster, agentService, r.Scheme)
+		return ctrl.SetControllerReference(&greenplumCluster, agentService, r.Scheme())
 	})
 	if err != nil {
 		return err
@@ -181,7 +182,7 @@ func (r *GreenplumClusterReconciler) createOrUpdateClusterResources(ctx context.
 	}
 	operationResult, err = ctrl.CreateOrUpdate(ctx, r, greenplumService, func() error {
 		service.ModifyGreenplumService(gpName, greenplumService)
-		return ctrl.SetControllerReference(&greenplumCluster, greenplumService, r.Scheme)
+		return ctrl.SetControllerReference(&greenplumCluster, greenplumService, r.Scheme())
 	})
 	if err != nil {
 		return err
@@ -195,7 +196,7 @@ func (r *GreenplumClusterReconciler) createOrUpdateClusterResources(ctx context.
 		},
 	}
 	operationResult, err = ctrl.CreateOrUpdate(ctx, r, serviceAccount, func() error {
-		return ctrl.SetControllerReference(&greenplumCluster, serviceAccount, r.Scheme)
+		return ctrl.SetControllerReference(&greenplumCluster, serviceAccount, r.Scheme())
 	})
 	if err != nil {
 		return err
@@ -212,7 +213,7 @@ func (r *GreenplumClusterReconciler) createOrUpdateClusterResources(ctx context.
 		if err := serviceaccount.ModifyRole(role); err != nil {
 			return err
 		}
-		return ctrl.SetControllerReference(&greenplumCluster, role, r.Scheme)
+		return ctrl.SetControllerReference(&greenplumCluster, role, r.Scheme())
 	})
 	if err != nil {
 		return err
@@ -227,7 +228,7 @@ func (r *GreenplumClusterReconciler) createOrUpdateClusterResources(ctx context.
 	}
 	operationResult, err = ctrl.CreateOrUpdate(ctx, r, roleBinding, func() error {
 		serviceaccount.ModifyRoleBinding(roleBinding)
-		return ctrl.SetControllerReference(&greenplumCluster, roleBinding, r.Scheme)
+		return ctrl.SetControllerReference(&greenplumCluster, roleBinding, r.Scheme())
 	})
 	if err != nil {
 		return err
@@ -243,7 +244,7 @@ func (r *GreenplumClusterReconciler) createOrUpdateClusterResources(ctx context.
 	}
 	operationResult, err = ctrl.CreateOrUpdate(ctx, r, masterStatefulSet, func() error {
 		sset.ModifyGreenplumStatefulSet(masterStatefulSetParams, masterStatefulSet)
-		return ctrl.SetControllerReference(&greenplumCluster, masterStatefulSet, r.Scheme)
+		return ctrl.SetControllerReference(&greenplumCluster, masterStatefulSet, r.Scheme())
 	})
 	if err != nil {
 		return err
@@ -259,7 +260,7 @@ func (r *GreenplumClusterReconciler) createOrUpdateClusterResources(ctx context.
 	}
 	operationResult, err = ctrl.CreateOrUpdate(ctx, r, primaryStatefulSet, func() error {
 		sset.ModifyGreenplumStatefulSet(primaryStatefulSetParams, primaryStatefulSet)
-		return controllerutil.SetControllerReference(&greenplumCluster, primaryStatefulSet, r.Scheme)
+		return controllerutil.SetControllerReference(&greenplumCluster, primaryStatefulSet, r.Scheme())
 	})
 	if err != nil {
 		return err
@@ -276,7 +277,7 @@ func (r *GreenplumClusterReconciler) createOrUpdateClusterResources(ctx context.
 		}
 		operationResult, err = ctrl.CreateOrUpdate(ctx, r, mirrorStatefulSet, func() error {
 			sset.ModifyGreenplumStatefulSet(mirrorStatefulSetParams, mirrorStatefulSet)
-			return ctrl.SetControllerReference(&greenplumCluster, mirrorStatefulSet, r.Scheme)
+			return ctrl.SetControllerReference(&greenplumCluster, mirrorStatefulSet, r.Scheme())
 		})
 		if err != nil {
 			return err
@@ -291,7 +292,7 @@ func (r *GreenplumClusterReconciler) logReconcileResult(operationResult controll
 	if operationResult == controllerutil.OperationResultNone {
 		return
 	}
-	gvk, err := apiutil.GVKForObject(obj, r.Scheme)
+	gvk, err := apiutil.GVKForObject(obj, r.Scheme())
 	if err != nil {
 		panic(err)
 	}
