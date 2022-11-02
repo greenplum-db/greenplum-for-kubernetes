@@ -1,6 +1,7 @@
 package admission_test
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
@@ -111,8 +112,8 @@ var _ = Describe("Validating Admission Webhook", func() {
 
 			It("starts a webhook server", func() {
 				mockServer.started = make(chan struct{})
-				stopCh := make(chan struct{})
-				go subject.Run(stopCh)
+				ctx, cancel := context.WithCancel(context.Background())
+				go subject.Run(ctx)
 
 				Eventually(mockServer.started, 5*time.Second).Should(BeClosed())
 				Expect(mockServer.cert).To(Equal(cg.getCertStub.returnedX509))
@@ -122,7 +123,7 @@ var _ = Describe("Validating Admission Webhook", func() {
 				Expect(resp.Body.String()).To(Equal("I am the mock handler"))
 
 				Consistently(logBuf).ShouldNot(gbytes.Say("shutting down greenplum validating admission webhook server"))
-				close(stopCh)
+				cancel()
 				Eventually(logBuf).Should(gbytes.Say("shutting down greenplum validating admission webhook server"))
 			})
 		})

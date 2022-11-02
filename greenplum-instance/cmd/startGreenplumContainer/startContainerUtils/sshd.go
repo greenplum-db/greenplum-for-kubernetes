@@ -1,6 +1,7 @@
 package startContainerUtils
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
@@ -11,7 +12,7 @@ type SSHDaemon struct {
 	*starter.App
 }
 
-func (s *SSHDaemon) Run(stopCh <-chan struct{}) error {
+func (s *SSHDaemon) Run(ctx context.Context) error {
 	Log.Info("starting SSH Daemon")
 
 	cmd := s.Command("/usr/bin/sudo", "/usr/sbin/sshd", "-D")
@@ -30,7 +31,7 @@ func (s *SSHDaemon) Run(stopCh <-chan struct{}) error {
 
 	select {
 	// Got a SIGTERM: kill the sshd process
-	case <-stopCh:
+	case <-ctx.Done():
 		Log.Info("killing sshd", "pid", cmd.Process.Pid)
 		killCmd := s.Command("/usr/bin/sudo", "/bin/kill", "-SIGKILL", strconv.Itoa(cmd.Process.Pid))
 		output, err := killCmd.CombinedOutput()

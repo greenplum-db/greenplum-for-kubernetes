@@ -1,6 +1,7 @@
 package startContainerUtils
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -29,7 +30,7 @@ type ClusterInitDaemon struct {
 	C                cluster.ClusterInterface
 }
 
-func (s *ClusterInitDaemon) Run(_ <-chan struct{}) error {
+func (s *ClusterInitDaemon) Run(_ context.Context) error {
 	go func() {
 		if err := s.InitializeCluster(); err != nil {
 			Log.Error(err, "failed to initialize cluster")

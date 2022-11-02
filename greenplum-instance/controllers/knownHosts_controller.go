@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -62,7 +63,7 @@ func NewKnownHostsController() *KnownHostsController {
 	}
 }
 
-func (c *KnownHostsController) Run(stopCh <-chan struct{}) error {
+func (c *KnownHostsController) Run(ctx context.Context) error {
 	client, err := c.ClientFn()
 	if err != nil {
 		return fmt.Errorf("failed to initialize client: %w", err)
@@ -92,8 +93,8 @@ func (c *KnownHostsController) Run(stopCh <-chan struct{}) error {
 		UpdateFunc: func(oldObj, newObj interface{}) { c.Reconciler.Reconcile(newObj) },
 	})
 
-	informerFactory.Start(stopCh)
-	informerFactory.WaitForCacheSync(stopCh)
+	informerFactory.Start(ctx.Done())
+	informerFactory.WaitForCacheSync(ctx.Done())
 
 	return nil
 }

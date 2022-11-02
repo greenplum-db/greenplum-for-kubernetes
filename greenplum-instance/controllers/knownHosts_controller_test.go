@@ -35,18 +35,17 @@ var _ = Describe("KnownHostsController", func() {
 	Describe("Run happy path", func() {
 		var (
 			ctx           context.Context
+			cancel        context.CancelFunc
 			testClient    *fake.Clientset
 			mockConfig    *instanceconfigTesting.MockReader
 			reconciler    *reconcileSpy
-			stopCh        chan struct{}
 			fakeEndpoints *corev1.Endpoints
 		)
 		BeforeEach(func() {
-			ctx = context.WithValue(context.Background(), struct{ key string }{"test"}, CurrentGinkgoTestDescription().TestText)
+			ctx, cancel = context.WithCancel(context.Background())
 			testClient = fake.NewSimpleClientset()
 			mockConfig = &instanceconfigTesting.MockReader{}
 			reconciler = &reconcileSpy{called: make(chan interface{})}
-			stopCh = make(chan struct{})
 			subject = &controllers.KnownHostsController{
 				ClientFn: func() (k kubernetes.Interface, err error) {
 					return testClient, nil
@@ -63,10 +62,10 @@ var _ = Describe("KnownHostsController", func() {
 			}
 		})
 		JustBeforeEach(func() {
-			Expect(subject.Run(stopCh)).To(Succeed())
+			Expect(subject.Run(ctx)).To(Succeed())
 		})
 		AfterEach(func() {
-			close(stopCh)
+			cancel()
 		})
 		When("endpoints are added", func() {
 			JustBeforeEach(func() {

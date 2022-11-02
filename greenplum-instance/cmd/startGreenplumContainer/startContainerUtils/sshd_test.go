@@ -1,6 +1,7 @@
 package startContainerUtils_test
 
 import (
+	"context"
 	"strconv"
 	"time"
 
@@ -92,12 +93,12 @@ var _ = Describe("SSHDaemon", func() {
 				})
 			})
 			It("kills sshd", func() {
-				stopCh := make(chan struct{})
+				ctx, cancel := context.WithCancel(context.Background())
 				resultChan := make(chan error)
 				go func() {
-					resultChan <- app.Run(stopCh)
+					resultChan <- app.Run(ctx)
 				}()
-				close(stopCh)
+				cancel()
 				Eventually(resultChan, 3*time.Second).Should(Receive(nil))
 				Expect(sshdCallCount).To(Equal(1))
 				Expect(testing.DecodeLogs(outBuffer)).To(testing.ContainLogEntry(gstruct.Keys{
@@ -133,12 +134,12 @@ var _ = Describe("SSHDaemon", func() {
 				}).PrintsOutput("error message").ReturnsStatus(1)
 			})
 			It("logs an error", func() {
-				stopCh := make(chan struct{})
+				ctx, cancel := context.WithCancel(context.Background())
 				resultChan := make(chan error)
 				go func() {
-					resultChan <- app.Run(stopCh)
+					resultChan <- app.Run(ctx)
 				}()
-				close(stopCh)
+				cancel()
 				expectedPid := <-pidCh
 				Eventually(resultChan, 3*time.Second).Should(Receive(nil))
 				decodedLogs, err := testing.DecodeLogs(outBuffer)

@@ -1,6 +1,7 @@
 package multidaemon_test
 
 import (
+	"context"
 	"errors"
 
 	. "github.com/onsi/ginkgo"
@@ -11,11 +12,12 @@ import (
 var _ = Describe("InitializeDaemons", func() {
 
 	var (
-		stopCh chan struct{}
+		ctx    context.Context
+		cancel context.CancelFunc
 	)
 
 	BeforeEach(func() {
-		stopCh = make(chan struct{})
+		ctx, cancel = context.WithCancel(context.Background())
 	})
 
 	When("all daemons are successful and there is a clean shutdown", func() {
@@ -23,8 +25,8 @@ var _ = Describe("InitializeDaemons", func() {
 			op1, op2 SuccessOperator
 		)
 		It("succeeds and allows all daemons to shutdown cleanly", func() {
-			close(stopCh)
-			errs := multidaemon.InitializeDaemons(stopCh, op1.Run, op2.Run)
+			cancel()
+			errs := multidaemon.InitializeDaemons(ctx, op1.Run, op2.Run)
 			Expect(errs).To(HaveLen(0))
 			Expect(op1.runCalled).To(BeTrue())
 			Expect(op1.cleanShutdown).To(BeTrue())
@@ -39,8 +41,8 @@ var _ = Describe("InitializeDaemons", func() {
 			op2 ShutdownFailureOperator
 		)
 		It("returns an error and allows all daemons to shutdown cleanly", func() {
-			close(stopCh)
-			errs := multidaemon.InitializeDaemons(stopCh, op1.Run, op2.Run)
+			cancel()
+			errs := multidaemon.InitializeDaemons(ctx, op1.Run, op2.Run)
 			Expect(errs).To(HaveLen(1))
 			Expect(errs).To(Equal([]error{errors.New("simulated failure")}))
 			Expect(op1.runCalled).To(BeTrue())
@@ -57,7 +59,7 @@ var _ = Describe("InitializeDaemons", func() {
 		)
 
 		It("returns an error and allows all daemons to shutdown cleanly", func() {
-			errs := multidaemon.InitializeDaemons(stopCh, op1.Run, op2.Run)
+			errs := multidaemon.InitializeDaemons(ctx, op1.Run, op2.Run)
 			Expect(errs).To(HaveLen(1))
 			Expect(errs).To(Equal([]error{errors.New("simulated failure")}))
 			Expect(op1.runCalled).To(BeTrue())
@@ -72,7 +74,7 @@ var _ = Describe("InitializeDaemons", func() {
 			op2 FailureOperator
 		)
 		It("returns an error", func() {
-			errs := multidaemon.InitializeDaemons(stopCh, op1.Run, op2.Run)
+			errs := multidaemon.InitializeDaemons(ctx, op1.Run, op2.Run)
 			Expect(errs).To(HaveLen(2))
 			Expect(errs).To(Equal([]error{
 				errors.New("simulated failure"),
@@ -89,9 +91,9 @@ type SuccessOperator struct {
 	cleanShutdown bool
 }
 
-func (o *SuccessOperator) Run(stopCh <-chan struct{}) error {
+func (o *SuccessOperator) Run(ctx context.Context) error {
 	o.runCalled = true
-	<-stopCh
+	<-ctx.Done()
 	o.cleanShutdown = true
 	return nil
 }
@@ -100,7 +102,7 @@ type FailureOperator struct {
 	runCalled bool
 }
 
-func (o *FailureOperator) Run(stopCh <-chan struct{}) error {
+func (o *FailureOperator) Run(_ context.Context) error {
 	o.runCalled = true
 	return errors.New("simulated failure")
 }
@@ -110,9 +112,9 @@ type ShutdownFailureOperator struct {
 	cleanShutdown bool
 }
 
-func (o *ShutdownFailureOperator) Run(stopCh <-chan struct{}) error {
+func (o *ShutdownFailureOperator) Run(ctx context.Context) error {
 	o.runCalled = true
-	<-stopCh
+	<-ctx.Done()
 	o.cleanShutdown = true
 	return errors.New("simulated failure")
 }

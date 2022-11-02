@@ -2,22 +2,21 @@ package multidaemon
 
 import "context"
 
-type DaemonFunc func(stopCh <-chan struct{}) error
+type DaemonFunc func(ctx context.Context) error
 
-func InitializeDaemons(signalStopCh <-chan struct{}, daemons ...DaemonFunc) []error {
+func InitializeDaemons(signalCtx context.Context, daemons ...DaemonFunc) []error {
 	ctx, cancel := context.WithCancel(context.Background())
-	stopCh := ctx.Done()
 	doneCh := make(chan error)
 
 	go func() {
-		<-signalStopCh
+		<-signalCtx.Done()
 		cancel()
 	}()
 
 	for _, o := range daemons {
 		f := o
 		go func() {
-			err := f(stopCh)
+			err := f(ctx)
 			if err != nil {
 				cancel()
 			}

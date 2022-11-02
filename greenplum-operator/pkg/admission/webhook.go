@@ -24,7 +24,7 @@ const (
 )
 
 type ValidatingWebhook interface {
-	Run(stopCh <-chan struct{}) error
+	Run(ctx context.Context) error
 }
 
 type Webhook struct {
@@ -40,7 +40,7 @@ type Webhook struct {
 
 var _ ValidatingWebhook = &Webhook{}
 
-func (w *Webhook) Run(stopCh <-chan struct{}) error {
+func (w *Webhook) Run(ctx context.Context) error {
 	Log.Info("starting greenplum validating admission webhook server")
 
 	signedCertPEM, signedCertX509, err := w.GenerateAndSignTLSCertificate()
@@ -54,7 +54,7 @@ func (w *Webhook) Run(stopCh <-chan struct{}) error {
 		return fmt.Errorf("creating ValidatingWebhookConfiguration: %w", err)
 	}
 
-	err = w.Server.Start(stopCh, *signedCertX509, ":https", w.Handler)
+	err = w.Server.Start(ctx.Done(), *signedCertX509, ":https", w.Handler)
 	if err != nil && err != http.ErrServerClosed {
 		return fmt.Errorf("validating admission webhook server start failed: %w", err)
 	}
