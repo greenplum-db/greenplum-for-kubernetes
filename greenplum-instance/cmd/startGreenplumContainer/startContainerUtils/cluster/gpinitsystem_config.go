@@ -64,11 +64,14 @@ func (g *gpInitSystem) GenerateConfig() error {
 		return err
 	}
 	dbID := 1
-	fmt.Fprintf(configFile, "QD_PRIMARY_ARRAY=master-0.%v~5432~/greenplum/data-1~%d~-1~0\n", subdomain, dbID)
+	hostname := fmt.Sprintf("master-0.%v", subdomain)
+	fmt.Fprintf(configFile, "QD_PRIMARY_ARRAY=%v~%v~5432~/greenplum/data-1~%d~-1~0\n", hostname, hostname, dbID)
 	dbID++
 	fmt.Fprint(configFile, "declare -a PRIMARY_ARRAY=(\n")
 	for segment := 0; segment < segmentCount; segment++ {
-		fmt.Fprintf(configFile, "segment-a-%d.%v~40000~/greenplum/data~%d~%d\n", segment, subdomain, dbID, segment)
+		hostname = fmt.Sprintf("segment-a-%d.%v", segment, subdomain)
+		fmt.Fprintf(configFile, "%v~%v~40000~/greenplum/data~%d~%d\n", hostname, hostname, dbID, segment)
+
 		dbID++
 	}
 	fmt.Fprint(configFile, ")\n")
@@ -79,7 +82,9 @@ func (g *gpInitSystem) GenerateConfig() error {
 			// bare metal systems that primaries and mirrors don't share storage.
 			// https://github.com/greenplum-db/gpdb/blob/5X_STABLE/gpMgmt/bin/gpinitsystem#L460
 			// TODO: enhance gpinitsystem to consider the hostname as well? i.e., sdw1:/data != sdw2:/data
-			fmt.Fprintf(configFile, "segment-b-%d.%v~50000~/greenplum/mirror/data~%d~%d\n", segment, subdomain, dbID, segment)
+			hostname = fmt.Sprintf("segment-b-%d.%v", segment, subdomain)
+			fmt.Fprintf(configFile, "%v~%v~50000~/greenplum/mirror/data~%d~%d\n", hostname, hostname, dbID, segment)
+
 			dbID++
 		}
 		fmt.Fprint(configFile, ")\n")
@@ -98,7 +103,16 @@ func (g *gpInitSystem) Run() error {
 	}
 	dnsSuffix := strings.TrimSuffix(string(dnsSuffixBytes), "\n")
 
-	args := []string{"-a", "-I", GpinitsystemConfigPath}
+	password := ""
+
+	if data, err := os.ReadFile("/var/run/secrets/gpadmin-password/password"); err == nil {
+		password = string(data)
+	} else {
+		fmt.Fprintf(g.Stdout, "Error reading secret gpadmin-password/password: %v\n", err)
+		password = "foobar"
+	}
+
+	args := []string{"-D", "-a", "-I", GpinitsystemConfigPath, "-e", password}
 
 	if standby, err := g.configReader.GetStandby(); err != nil {
 		return err
@@ -106,10 +120,10 @@ func (g *gpInitSystem) Run() error {
 		args = append(args, []string{"-s", "master-1." + dnsSuffix}...)
 	}
 
-	_, err = g.Filesystem.Lstat("/etc/config/GUCs")
-	if err == nil {
-		args = append(args, "-p", "/etc/config/GUCs")
-	}
+	// _, err = g.Filesystem.Lstat("/etc/config/GUCs")
+	// if err == nil {
+	// 	args = append(args, "-p", "/etc/config/GUCs")
+	// }
 
 	cmd := g.greenplumCommand.Command("/usr/local/greenplum-db/bin/gpinitsystem", args...)
 	cmd.Stdout = g.Stdout

@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gstruct"
-	greenplumv1beta1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1beta1"
+	greenplumv1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1"
 	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/pxf"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -16,21 +16,21 @@ import (
 
 var _ = Describe("PXF K8s resources", func() {
 	var (
-		greenplumPXF greenplumv1beta1.GreenplumPXFService
+		greenplumPXF greenplumv1.GreenplumPXFService
 
 		labels = map[string]string{
-			"app":           greenplumv1beta1.PXFAppName,
+			"app":           greenplumv1.PXFAppName,
 			"greenplum-pxf": "my-greenplum-pxf",
 		}
 	)
 
 	BeforeEach(func() {
-		greenplumPXF = greenplumv1beta1.GreenplumPXFService{
+		greenplumPXF = greenplumv1.GreenplumPXFService{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "my-greenplum-pxf",
 				Namespace: "test-ns",
 			},
-			Spec: greenplumv1beta1.GreenplumPXFServiceSpec{
+			Spec: greenplumv1.GreenplumPXFServiceSpec{
 				Replicas: 2,
 				CPU:      resource.MustParse("2"),
 				Memory:   resource.MustParse("2Gi"),
@@ -59,7 +59,7 @@ var _ = Describe("PXF K8s resources", func() {
 			Expect(deployment.Labels).To(Equal(labels))
 			Expect(deployment.Spec.Template.Labels).To(Equal(labels))
 			Expect(deployment.Spec.Selector.MatchLabels).To(Equal(labels))
-			Expect(deployment.Spec.Template.Spec.ImagePullSecrets[0].Name).To(Equal("regsecret"))
+			Expect(deployment.Spec.Template.Spec.ImagePullSecrets[0].Name).To(Equal("gcr-key"))
 			Expect(deployment.Spec.Template.Spec.NodeSelector).To(HaveKeyWithValue("worker", "my-greenplum-pxf-worker"))
 
 			// default
@@ -95,8 +95,8 @@ var _ = Describe("PXF K8s resources", func() {
 		})
 		When("pxfConf is configured", func() {
 			BeforeEach(func() {
-				greenplumPXF.Spec.PXFConf = &greenplumv1beta1.GreenplumPXFConf{
-					S3Source: greenplumv1beta1.S3Source{
+				greenplumPXF.Spec.PXFConf = &greenplumv1.GreenplumPXFConf{
+					S3Source: greenplumv1.S3Source{
 						Secret:   "test-secret",
 						Bucket:   "test-bucket",
 						EndPoint: "test-endpoint",

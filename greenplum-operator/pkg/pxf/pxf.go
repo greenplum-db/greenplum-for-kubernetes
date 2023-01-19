@@ -3,7 +3,7 @@ package pxf
 import (
 	"fmt"
 
-	greenplumv1beta1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1beta1"
+	greenplumv1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1"
 	"github.com/pivotal/greenplum-for-kubernetes/pkg/heapvalue"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -11,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func ModifyDeployment(greenplumPXF greenplumv1beta1.GreenplumPXFService, deployment *appsv1.Deployment, image string) {
+func ModifyDeployment(greenplumPXF greenplumv1.GreenplumPXFService, deployment *appsv1.Deployment, image string) {
 	labels := generateLabels(greenplumPXF.Name)
 
 	deployment.Labels = labels
@@ -24,7 +24,7 @@ func ModifyDeployment(greenplumPXF greenplumv1beta1.GreenplumPXFService, deploym
 	templateSpec.NodeSelector = greenplumPXF.Spec.WorkerSelector
 	templateSpec.ImagePullSecrets = []corev1.LocalObjectReference{
 		{
-			Name: "regsecret",
+			Name: "gcr-key",
 		},
 	}
 	var container *corev1.Container
@@ -72,7 +72,7 @@ func ModifyDeployment(greenplumPXF greenplumv1beta1.GreenplumPXFService, deploym
 	}
 }
 
-func generateS3Env(greenplumPXF greenplumv1beta1.GreenplumPXFService) []corev1.EnvVar {
+func generateS3Env(greenplumPXF greenplumv1.GreenplumPXFService) []corev1.EnvVar {
 	s3Source := greenplumPXF.Spec.PXFConf.S3Source
 
 	endpointIsSecure := true
@@ -122,7 +122,7 @@ func generateS3Env(greenplumPXF greenplumv1beta1.GreenplumPXFService) []corev1.E
 	}
 }
 
-func ModifyService(greenplumPXF greenplumv1beta1.GreenplumPXFService, service *corev1.Service) {
+func ModifyService(greenplumPXF greenplumv1.GreenplumPXFService, service *corev1.Service) {
 	labels := generateLabels(greenplumPXF.Name)
 
 	service.Labels = labels
@@ -136,7 +136,7 @@ func ModifyService(greenplumPXF greenplumv1beta1.GreenplumPXFService, service *c
 
 func generateLabels(name string) map[string]string {
 	return map[string]string{
-		"app":           greenplumv1beta1.PXFAppName,
+		"app":           greenplumv1.PXFAppName,
 		"greenplum-pxf": name,
 	}
 }

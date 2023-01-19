@@ -22,10 +22,10 @@ func (h *Handler) validateCreateGreenplumCluster(ctx context.Context, newGreenpl
 	if result != nil {
 		return
 	}
-	result = h.validateGreenplumStorageFromPVCs(ctx, newGreenplum)
-	if result != nil {
-		return
-	}
+	// result = h.validateGreenplumStorageFromPVCs(ctx, newGreenplum)
+	// if result != nil {
+	// 	return
+	// }
 	result = h.validatePvcGreenplumVersion(ctx, newGreenplum, "master")
 	if result != nil {
 		return
@@ -78,14 +78,14 @@ func (h *Handler) validateCreateGreenplumCluster(ctx context.Context, newGreenpl
 		return
 	}
 
-	result = validateResourceQuantity(newGreenplum.Spec.MasterAndStandby.Storage, "masterAndStandby", "storage")
-	if result != nil {
-		return
-	}
-	result = validateResourceQuantity(newGreenplum.Spec.Segments.Storage, "segments", "storage")
-	if result != nil {
-		return
-	}
+	// result = validateResourceQuantity(newGreenplum.Spec.MasterAndStandby.Storage, "masterAndStandby", "storage")
+	// if result != nil {
+	// 	return
+	// }
+	// result = validateResourceQuantity(newGreenplum.Spec.Segments.Storage, "segments", "storage")
+	// if result != nil {
+	// 	return
+	// }
 
 	allowed = true
 	return
@@ -116,7 +116,9 @@ func (h *Handler) validatePvcGreenplumVersion(ctx context.Context, newGreenplum 
 		if !ok {
 			errMsg := fmt.Sprintf(pvcVersionErrFmt, greenplumcluster.SupportedGreenplumMajorVersion, "no label")
 			result = &metav1.Status{Message: errMsg}
-		} else if ver != greenplumcluster.SupportedGreenplumMajorVersion {
+			// } else if ver != greenplumcluster.SupportedGreenplumMajorVersion {
+			// TODO: Turn SupportedGreenplumMajorVersion into a list
+		} else if (ver != "6" && ver != "7") {
 			errMsg := fmt.Sprintf(pvcVersionErrFmt, greenplumcluster.SupportedGreenplumMajorVersion, "greenplum-major-version="+ver)
 			result = &metav1.Status{Message: errMsg}
 		}
@@ -157,24 +159,24 @@ func (h *Handler) validateAntiAffinity(newGreenplum greenplumv1.GreenplumCluster
 	return
 }
 
-func (h *Handler) validateGreenplumStorageFromPVCs(ctx context.Context, newGreenplum greenplumv1.GreenplumCluster) (result *metav1.Status) {
-	masterPVCs, err := h.getGreenplumPVCs(ctx, newGreenplum, "master")
-	if err != nil {
-		result = &metav1.Status{Message: err.Error()}
-		return
-	}
-	result = h.validateStorageHelper(masterPVCs, newGreenplum.Spec.MasterAndStandby.Storage, newGreenplum.Spec.MasterAndStandby.StorageClassName, "Greenplum")
-	if result != nil {
-		return
-	}
+// func (h *Handler) validateGreenplumStorageFromPVCs(ctx context.Context, newGreenplum greenplumv1.GreenplumCluster) (result *metav1.Status) {
+// 	masterPVCs, err := h.getGreenplumPVCs(ctx, newGreenplum, "master")
+// 	if err != nil {
+// 		result = &metav1.Status{Message: err.Error()}
+// 		return
+// 	}
+// 	result = h.validateStorageHelper(masterPVCs, newGreenplum.Spec.MasterAndStandby.Storage, newGreenplum.Spec.MasterAndStandby.StorageClassName, "Greenplum")
+// 	if result != nil {
+// 		return
+// 	}
 
-	segmentPVCs, err := h.getGreenplumPVCs(ctx, newGreenplum, "segment-a")
-	if err != nil {
-		result = &metav1.Status{Message: err.Error()}
-		return
-	}
-	return h.validateStorageHelper(segmentPVCs, newGreenplum.Spec.Segments.Storage, newGreenplum.Spec.Segments.StorageClassName, "Greenplum")
-}
+// 	segmentPVCs, err := h.getGreenplumPVCs(ctx, newGreenplum, "segment-a")
+// 	if err != nil {
+// 		result = &metav1.Status{Message: err.Error()}
+// 		return
+// 	}
+// 	return h.validateStorageHelper(segmentPVCs, newGreenplum.Spec.Segments.Storage, newGreenplum.Spec.Segments.StorageClassName, "Greenplum")
+// }
 
 func (h *Handler) validateStandby(ctx context.Context, newGreenplum greenplumv1.GreenplumCluster) (result *metav1.Status) {
 	pvcList, err := h.getGreenplumPVCs(ctx, newGreenplum, "master")

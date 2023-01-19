@@ -46,7 +46,7 @@ func (cr *ConsistentDNSResolver) Execute(addr string) error {
 }
 
 func (cr *ConsistentDNSResolver) PollUntilConsistent(poll func() bool) error {
-	deadline := cr.Clock.Now().Add(5 * time.Minute)
+	deadline := cr.Clock.Now().Add(10 * time.Minute)
 	for cr.Clock.Now().Before(deadline) {
 		if poll() {
 			cr.Clock.Sleep(1 * time.Second)

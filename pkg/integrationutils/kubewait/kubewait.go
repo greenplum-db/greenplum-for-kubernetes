@@ -360,10 +360,10 @@ func ForClusterReady(waitForAutoInit bool) error {
 		return err
 	}
 
-	err = ForGreenplumService("greenplum")
-	if err != nil {
-		return err
-	}
+	// err = ForGreenplumService("greenplum")
+	// if err != nil {
+	// 	return err
+	// }
 	if waitForAutoInit {
 		log.Info("Waiting for cluster to be initialized ... This could take a few minutes")
 		err = ForGreenplumInitialization()

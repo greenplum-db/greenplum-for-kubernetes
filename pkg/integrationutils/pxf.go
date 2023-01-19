@@ -73,7 +73,7 @@ var pxfManifestTemplate = template.Must(
 	template.New("GreenplumCluster manifest template").
 		Funcs(sprig.TxtFuncMap()).
 		Parse(`---
-apiVersion: "greenplum.pivotal.io/v1beta1"
+apiVersion: "greenplum.pivotal.io/v1"
 kind: GreenplumPXFService
 metadata:
   name: my-greenplum-pxf

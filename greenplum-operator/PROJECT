@@ -3,7 +3,7 @@ domain: pivotal.io
 repo: github.com/pivotal/greenplum-for-kubernetes/greenplum-operator
 resources:
 - group: greenplum
-  version: v1beta1
+  version: v1
   kind: GreenplumPXFService
 - group: greenplum
   version: v1

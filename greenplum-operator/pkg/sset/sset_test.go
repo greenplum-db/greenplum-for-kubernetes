@@ -72,7 +72,7 @@ var _ = Describe("GreenplumCluster StatefulSet spec", func() {
 	})
 	It("has all the required parameters in pod spec", func() {
 		greenplumPodSpec := subject.Spec.Template.Spec
-		Expect(greenplumPodSpec.ImagePullSecrets[0].Name).To(Equal("regsecret"))
+		Expect(greenplumPodSpec.ImagePullSecrets[0].Name).To(Equal("gcr-key"))
 		Expect(len(greenplumPodSpec.Containers)).ToNot(BeZero())
 		Expect(len(greenplumPodSpec.Volumes)).ToNot(BeZero())
 		Expect(greenplumPodSpec.DNSConfig).To(Equal(&corev1.PodDNSConfig{Searches: []string{"agent.test-namespace.svc.cluster.local"}}))

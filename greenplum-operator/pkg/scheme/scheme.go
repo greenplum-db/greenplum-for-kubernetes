@@ -2,7 +2,6 @@ package scheme
 
 import (
 	greenplumv1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1"
-	greenplumv1beta1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1beta1"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -20,5 +19,4 @@ func init() {
 	_ = apiextensionsv1.AddToScheme(Scheme)
 	_ = apiserver.AddToScheme(Scheme)
 	_ = greenplumv1.AddToScheme(Scheme)
-	_ = greenplumv1beta1.AddToScheme(Scheme)
 }

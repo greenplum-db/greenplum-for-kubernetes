@@ -20,7 +20,7 @@ var _ = Describe("GenerateJob", func() {
 		Expect(sshSecretVolume.VolumeSource.Secret.SecretName).To(Equal("ssh-secrets"))
 		Expect(sshSecretVolume.VolumeSource.Secret.DefaultMode).To(gstruct.PointTo(Equal(int32(0444))))
 
-		Expect(gpexpandPod.ImagePullSecrets[0].Name).To(Equal("regsecret"))
+		Expect(gpexpandPod.ImagePullSecrets[0].Name).To(Equal("gcr-key"))
 		gpexpandContainer := gpexpandPod.Containers[0]
 		Expect(gpexpandContainer.Name).To(Equal("gpexpand"))
 		Expect(gpexpandContainer.Env[0].Name).To(Equal("GPEXPAND_HOST"))

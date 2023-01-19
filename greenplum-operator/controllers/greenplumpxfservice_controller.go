@@ -8,7 +8,7 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
-	greenplumv1beta1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1beta1"
+	greenplumv1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1"
 	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/pxf"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
@@ -47,7 +47,7 @@ func (r *GreenplumPXFServiceReconciler) Reconcile(ctx context.Context, req ctrl.
 	}
 
 	// GreenplumPXFService
-	var greenplumPXF greenplumv1beta1.GreenplumPXFService
+	var greenplumPXF greenplumv1.GreenplumPXFService
 	if err := r.Get(ctx, req.NamespacedName, &greenplumPXF); err != nil {
 		if apierrs.IsNotFound(err) {
 			return ctrl.Result{}, nil
@@ -92,11 +92,11 @@ func (r *GreenplumPXFServiceReconciler) Reconcile(ctx context.Context, req ctrl.
 	unavailableReplicas := pxfDeployment.Status.UnavailableReplicas
 	updatedReplicas := pxfDeployment.Status.UpdatedReplicas
 	if readyReplicas == 0 {
-		newPXF.Status.Phase = greenplumv1beta1.GreenplumPXFServicePhasePending
+		newPXF.Status.Phase = greenplumv1.GreenplumPXFServicePhasePending
 	} else if unavailableReplicas != 0 || updatedReplicas < desiredReplicas {
-		newPXF.Status.Phase = greenplumv1beta1.GreenplumPXFServicePhaseDegraded
+		newPXF.Status.Phase = greenplumv1.GreenplumPXFServicePhaseDegraded
 	} else {
-		newPXF.Status.Phase = greenplumv1beta1.GreenplumPXFServicePhaseRunning
+		newPXF.Status.Phase = greenplumv1.GreenplumPXFServicePhaseRunning
 	}
 	if newPXF.Status.Phase != greenplumPXF.Status.Phase {
 		err = r.Patch(ctx, newPXF, client.MergeFrom(&greenplumPXF))
@@ -111,7 +111,7 @@ func (r *GreenplumPXFServiceReconciler) Reconcile(ctx context.Context, req ctrl.
 
 func (r *GreenplumPXFServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&greenplumv1beta1.GreenplumPXFService{}).
+		For(&greenplumv1.GreenplumPXFService{}).
 		Owns(&appsv1.Deployment{}).
 		Complete(r)
 }

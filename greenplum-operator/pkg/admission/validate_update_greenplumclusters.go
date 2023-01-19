@@ -67,17 +67,17 @@ func (h *Handler) validateUpdateGreenplumCluster(ctx context.Context, oldGreenpl
 		return
 	}
 
-	if newGreenplum.Spec.MasterAndStandby.Storage != oldGreenplum.Spec.MasterAndStandby.Storage ||
-		newGreenplum.Spec.Segments.Storage != oldGreenplum.Spec.Segments.Storage {
-		result = &metav1.Status{Message: "storage cannot be changed after the cluster has been created"}
-		return
-	}
+	// if newGreenplum.Spec.MasterAndStandby.Storage != oldGreenplum.Spec.MasterAndStandby.Storage ||
+	// 	newGreenplum.Spec.Segments.Storage != oldGreenplum.Spec.Segments.Storage {
+	// 	result = &metav1.Status{Message: "storage cannot be changed after the cluster has been created"}
+	// 	return
+	// }
 
-	if newGreenplum.Spec.MasterAndStandby.StorageClassName != oldGreenplum.Spec.MasterAndStandby.StorageClassName ||
-		newGreenplum.Spec.Segments.StorageClassName != oldGreenplum.Spec.Segments.StorageClassName {
-		result = &metav1.Status{Message: "storageClassName cannot be changed after the cluster has been created"}
-		return
-	}
+	// if newGreenplum.Spec.MasterAndStandby.StorageClassName != oldGreenplum.Spec.MasterAndStandby.StorageClassName ||
+	// 	newGreenplum.Spec.Segments.StorageClassName != oldGreenplum.Spec.Segments.StorageClassName {
+	// 	result = &metav1.Status{Message: "storageClassName cannot be changed after the cluster has been created"}
+	// 	return
+	// }
 
 	if newGreenplum.Spec.Segments.PrimarySegmentCount < oldGreenplum.Spec.Segments.PrimarySegmentCount {
 		result = &metav1.Status{Message: "primarySegmentCount cannot be decreased after the cluster has been created"}

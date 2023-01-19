@@ -32,7 +32,7 @@ import (
 
 const (
 	StopClusterFinalizer           = "stopcluster.greenplumcluster.pivotal.io"
-	SupportedGreenplumMajorVersion = "6"
+	SupportedGreenplumMajorVersion = "7"
 )
 
 // GreenplumClusterReconciler reconciles a GreenplumCluster object
@@ -174,20 +174,26 @@ func (r *GreenplumClusterReconciler) createOrUpdateClusterResources(ctx context.
 	}
 	r.logReconcileResult(operationResult, agentService)
 
-	greenplumService := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "greenplum",
-			Namespace: ns,
-		},
+	if greenplumCluster.Spec.LoadBalancer {
+		greenplumService := &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "greenplum",
+				Namespace: ns,
+			},
+		}
+		var defaultSpec = (greenplumCluster.Spec.LoadBalancerServiceSpec == nil)
+		if !defaultSpec {
+			greenplumService.Spec = *greenplumCluster.Spec.LoadBalancerServiceSpec
+		}
+		operationResult, err = ctrl.CreateOrUpdate(ctx, r, greenplumService, func() error {
+			service.ModifyGreenplumService(gpName, greenplumService, defaultSpec)
+			return ctrl.SetControllerReference(&greenplumCluster, greenplumService, r.Scheme())
+		})
+		if err != nil {
+			return err
+		}
+		r.logReconcileResult(operationResult, greenplumService)
 	}
-	operationResult, err = ctrl.CreateOrUpdate(ctx, r, greenplumService, func() error {
-		service.ModifyGreenplumService(gpName, greenplumService)
-		return ctrl.SetControllerReference(&greenplumCluster, greenplumService, r.Scheme())
-	})
-	if err != nil {
-		return err
-	}
-	r.logReconcileResult(operationResult, greenplumService)
 
 	serviceAccount := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
@@ -241,6 +247,11 @@ func (r *GreenplumClusterReconciler) createOrUpdateClusterResources(ctx context.
 			Name:      "master",
 			Namespace: ns,
 		},
+		Spec: appsv1.StatefulSetSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: masterStatefulSetParams.GpPodSpec.Spec,
+			},
+		},
 	}
 	operationResult, err = ctrl.CreateOrUpdate(ctx, r, masterStatefulSet, func() error {
 		sset.ModifyGreenplumStatefulSet(masterStatefulSetParams, masterStatefulSet)
@@ -256,6 +267,11 @@ func (r *GreenplumClusterReconciler) createOrUpdateClusterResources(ctx context.
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "segment-a",
 			Namespace: ns,
+		},
+		Spec: appsv1.StatefulSetSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: primaryStatefulSetParams.GpPodSpec.Spec,
+			},
 		},
 	}
 	operationResult, err = ctrl.CreateOrUpdate(ctx, r, primaryStatefulSet, func() error {
@@ -273,6 +289,11 @@ func (r *GreenplumClusterReconciler) createOrUpdateClusterResources(ctx context.
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "segment-b",
 				Namespace: ns,
+			},
+			Spec: appsv1.StatefulSetSpec{
+				Template: corev1.PodTemplateSpec{
+					Spec: mirrorStatefulSetParams.GpPodSpec.Spec,
+				},
 			},
 		}
 		operationResult, err = ctrl.CreateOrUpdate(ctx, r, mirrorStatefulSet, func() error {
