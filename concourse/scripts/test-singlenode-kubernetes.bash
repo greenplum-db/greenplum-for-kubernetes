@@ -39,12 +39,8 @@ export DOCKER_HOST=unix://$HOME/gke.sock
 # wait for GKE socket
 while [ ! -S ${HOME}/gke.sock ]; do sleep 1; printf "."; done
 
-# create vendor dir
-make -C greenplum-for-kubernetes vendor
-
 # build greenplumReady
 pushd greenplum-for-kubernetes/greenplum-operator/cmd/greenplumReady && go build && popd
-
 
 RELEASE_DIR=${RELEASE_DIR} ${PWD}/greenplum-for-kubernetes/test/load-release.bash
 

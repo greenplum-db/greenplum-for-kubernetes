@@ -100,7 +100,6 @@ _main() {
         sed -i "s%  name:.*%  name: ${GP_INSTANCE_NAME}%" greenplum-for-kubernetes/workspace/my-gp-instance.yaml
     fi
 
-    make -C greenplum-for-kubernetes/ vendor
     make -C greenplum-for-kubernetes/greenplum-operator deploy-clean
     make -C greenplum-for-kubernetes/greenplum-operator deploy
 

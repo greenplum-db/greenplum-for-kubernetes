@@ -21,5 +21,3 @@ issues:
     - "don't use ALL_CAPS in Go names; use CamelCase"
     - "and that stutters"
     - "don't use MixedCaps in package name"
-skip-dirs:
-  - vendor

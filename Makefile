@@ -62,15 +62,6 @@ gke-docker: docker
 	docker tag greenplum-for-kubernetes:latest gcr.io/gp-kubernetes/greenplum-for-kubernetes:$$GREENPLUM_IMAGE_TAG; \
 	docker push gcr.io/gp-kubernetes/greenplum-for-kubernetes:$$GREENPLUM_IMAGE_TAG
 
-# .PHONY: vendor # This is NOT phony. It is a real directory. Don't uncomment or delete me.
-vendor: go.mod go.sum tools/tools.go
-	$(info Loading dependencies ...)
-	go mod vendor
-
-	# update mtime of the directory, so that it is newer than its dependencies.
-	# NB: This does not happen otherwise. Don't delete me! Talk to dsharp for more info.
-	touch vendor
-
 .PHONY: tools
 tools: ${GOBIN}/goimports ${GOBIN}/ginkgo ${GOBIN}/golangci-lint ${GOBIN}/loadmaster ${GOBIN}/kustomize ${GOBIN}/jsonnet controller-gen
 
