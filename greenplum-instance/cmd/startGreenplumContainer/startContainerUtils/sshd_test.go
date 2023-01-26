@@ -50,7 +50,7 @@ var _ = Describe("SSHDaemon", func() {
 	})
 	Describe("on Run()", func() {
 		It("starts SSH Daemon in foreground", func() {
-			Expect(app.Run(nil).Error()).To(ContainSubstring("sshd is not running"))
+			Expect(app.Run(context.TODO()).Error()).To(ContainSubstring("sshd is not running"))
 			Expect(outBuffer).To(gbytes.Say(`"starting SSH Daemon"`))
 			Expect(fakeCmd.CapturedArgs()).To(Equal("/usr/bin/sudo /usr/sbin/sshd -D"))
 		})
@@ -58,7 +58,7 @@ var _ = Describe("SSHDaemon", func() {
 			var err error
 			BeforeEach(func() {
 				fakeCmd.ExpectCommand("/usr/bin/sudo", "/usr/sbin/sshd", "-D").ReturnsStatus(1)
-				err = app.Run(nil)
+				err = app.Run(context.TODO())
 			})
 			It("logs the return code", func() {
 				Expect(testing.DecodeLogs(outBuffer)).To(testing.ContainLogEntry(gstruct.Keys{

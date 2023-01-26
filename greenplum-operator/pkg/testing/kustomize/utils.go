@@ -13,8 +13,8 @@ import (
 func Build(kustomizePath string, out io.Writer) error {
 	// From sigs.k8s.io/kustomize/kustomize/v3/internal/commands/build/build.go#RunBuild()
 	fSys := filesys.MakeFsOnDisk()
-	k := krusty.MakeKustomizer(fSys, krusty.MakeDefaultOptions())
-	m, err := k.Run(kustomizePath)
+	k := krusty.MakeKustomizer(krusty.MakeDefaultOptions())
+	m, err := k.Run(fSys, kustomizePath)
 	if err != nil {
 		return err
 	}
