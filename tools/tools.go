@@ -1,3 +1,4 @@
+//go:build tools
 // +build tools
 
 // https://github.com/golang/go/wiki/Modules#how-can-i-track-tool-dependencies-for-a-module
@@ -11,5 +12,5 @@ import (
 	_ "github.com/onsi/ginkgo/ginkgo"
 	_ "golang.org/x/tools/cmd/goimports"
 	_ "sigs.k8s.io/controller-tools/cmd/controller-gen"
-	_ "sigs.k8s.io/kustomize/kustomize/v3"
+	_ "sigs.k8s.io/kustomize/kustomize/v4"
 )

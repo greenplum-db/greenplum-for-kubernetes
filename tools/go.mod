@@ -9,7 +9,7 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	golang.org/x/tools v0.1.12
 	sigs.k8s.io/controller-tools v0.10.0
-	sigs.k8s.io/kustomize/kustomize/v3 v3.10.0
+	sigs.k8s.io/kustomize/kustomize/v4 v4.5.7
 )
 
 require (

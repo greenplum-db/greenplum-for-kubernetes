@@ -88,7 +88,7 @@ ${GOBIN}/loadmaster:
 	go install -modfile tools/go.mod github.com/bradfordboyle/loadmaster
 
 ${GOBIN}/kustomize:
-	go install -modfile tools/go.mod sigs.k8s.io/kustomize/kustomize/v3
+	go install -modfile tools/go.mod sigs.k8s.io/kustomize/kustomize/v4
 
 ${GOBIN}/jsonnet:
 	go install -modfile tools/go.mod github.com/google/go-jsonnet/cmd/jsonnet
