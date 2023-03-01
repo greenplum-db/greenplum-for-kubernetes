@@ -15,7 +15,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	greenplumv1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1"
-	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/admission"
 	"github.com/pivotal/greenplum-for-kubernetes/pkg/gplog"
 	. "github.com/pivotal/greenplum-for-kubernetes/pkg/integrationutils"
 	. "github.com/pivotal/greenplum-for-kubernetes/pkg/integrationutils/kubeexecpsql"
@@ -326,9 +325,6 @@ var _ = Describe("Happy path integration greenplum operator", func() {
 			Expect(exec.Command("helm", "uninstall", "greenplum-operator").Run()).To(Succeed())
 		})
 		It("deletes owned resources", func() {
-			EventuallyResourceShouldBeDeleted("validatingwebhookconfiguration/" + admission.WebhookConfigName)
-			EventuallyResourceShouldBeDeleted("service/" + admission.ServiceName)
-			EventuallyResourceShouldBeDeleted("certificatesigningrequest/" + admission.CSRName)
 			EventuallyResourceShouldBeDeleted("customresourcedefinition/greenplumclusters.greenplum.pivotal.io")
 		})
 	})

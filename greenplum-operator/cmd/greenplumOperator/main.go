@@ -12,7 +12,6 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/controllers"
 	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/controllers/greenplumcluster"
-	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/admission"
 	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/executor"
 	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/scheme"
 	"github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/pkg/sshkeygen"
@@ -21,7 +20,6 @@ import (
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/util/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -65,18 +63,6 @@ func Run() error {
 		return errors.Wrap(err, "getting operator image name")
 	}
 
-	// mgr.GetClient() will return a caching client. The caches aren't started until mgr.Start, but NewWebhook() calls the client to call GetThisPod.
-	// Instead, create a direct client for the Webhook to use.
-	// TODO: Consider how we could or should use caching for the webhook.
-	apiClient, err := client.New(mgr.GetConfig(), client.Options{Scheme: mgr.GetScheme(), Mapper: mgr.GetRESTMapper()})
-	if err != nil {
-		return errors.Wrap(err, "creating API client for webhook")
-	}
-	webhook, err := admission.NewWebhook(apiClient, mgr.GetConfig(), podExec, instanceImage)
-	if err != nil {
-		return errors.Wrap(err, "creating webhook")
-	}
-
 	if err = (&controllers.GreenplumPXFServiceReconciler{
 		Client:        mgr.GetClient(),
 		Log:           ctrl.Log.WithName("controllers").WithName("GreenplumPXFService"),
@@ -100,7 +86,7 @@ func Run() error {
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")
-	if errs := multidaemon.InitializeDaemons(ctrl.SetupSignalHandler(), webhook.Run, mgr.Start); len(errs) > 0 {
+	if errs := multidaemon.InitializeDaemons(ctrl.SetupSignalHandler(), mgr.Start); len(errs) > 0 {
 		return k8serrors.NewAggregate(errs)
 	}
 	return nil

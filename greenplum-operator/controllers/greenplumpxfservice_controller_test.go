@@ -157,7 +157,7 @@ var _ = Describe("PXF controller", func() {
 		})
 
 		When("reconciliation succeeds", func() {
-			It("updates attributes", func() {
+			FIt("updates attributes", func() {
 				pxf.Spec.Replicas = 99
 				pxf.Spec.CPU = resource.MustParse("42")
 				pxf.Spec.Memory = resource.MustParse("36Gi")
