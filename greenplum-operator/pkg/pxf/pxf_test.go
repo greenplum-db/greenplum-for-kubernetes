@@ -59,7 +59,7 @@ var _ = Describe("PXF K8s resources", func() {
 			Expect(deployment.Labels).To(Equal(labels))
 			Expect(deployment.Spec.Template.Labels).To(Equal(labels))
 			Expect(deployment.Spec.Selector.MatchLabels).To(Equal(labels))
-			Expect(deployment.Spec.Template.Spec.ImagePullSecrets[0].Name).To(Equal("gcr-key"))
+			Expect(deployment.Spec.Template.Spec.ImagePullSecrets[0].Name).To(Equal("regsecret"))
 			Expect(deployment.Spec.Template.Spec.NodeSelector).To(HaveKeyWithValue("worker", "my-greenplum-pxf-worker"))
 
 			// default

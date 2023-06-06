@@ -135,7 +135,7 @@ func modifyGreenplumContainer(params *GreenplumStatefulSetParams, containers []c
 	container.Name = greenplumv1.AppName
 	container.Args = []string{"/home/gpadmin/tools/startGreenplumContainer"}
 	container.Image = params.InstanceImage
-	container.ImagePullPolicy = corev1.PullAlways
+	container.ImagePullPolicy = corev1.PullIfNotPresent
 	container.Ports = []corev1.ContainerPort{
 		{
 			ContainerPort: 22,

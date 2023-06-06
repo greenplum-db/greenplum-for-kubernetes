@@ -55,4 +55,4 @@ spec:
 #          initialDelaySeconds: 1
 #          periodSeconds: 5
       imagePullSecrets:
-        - name: gcr-key
+        - name: regsecret

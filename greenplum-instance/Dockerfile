@@ -22,9 +22,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     ./cmd/waitForKnownHosts
 
 # build greenplum-instance image from here
-# FROM gcr.io/plaidcloud-build/greenplum-pxf:latest
 FROM rockylinux:8.7
-
 
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV GPHOME=/usr/local/greenplum-db
@@ -102,7 +100,7 @@ ARG DATE=unknown
 ARG LICENSE="https://www.apache.org/licenses/LICENSE-2.0"
 
 LABEL name="Greenplum for Kubernetes" \
-    vendor="PlaidCloud" \
+    vendor="Pivotal Software" \
     version="${VERSION}" \
     build_date="${DATE}" \
     license="${LICENSE}"

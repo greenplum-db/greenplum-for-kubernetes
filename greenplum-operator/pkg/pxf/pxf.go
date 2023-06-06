@@ -24,7 +24,7 @@ func ModifyDeployment(greenplumPXF greenplumv1.GreenplumPXFService, deployment *
 	templateSpec.NodeSelector = greenplumPXF.Spec.WorkerSelector
 	templateSpec.ImagePullSecrets = []corev1.LocalObjectReference{
 		{
-			Name: "gcr-key",
+			Name: "regsecret",
 		},
 	}
 	var container *corev1.Container

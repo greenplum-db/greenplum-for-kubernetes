@@ -37,7 +37,7 @@ ARG GREENPLUM_VERSION=7.00.0
 ENV GREENPLUM_VERSION=${GREENPLUM_VERSION}
 
 LABEL name="Greenplum Operator" \
-    vendor="PlaidCloud" \
+    vendor="Pivotal Software" \
     version="${VERSION}" \
     build_date="${DATE}" \
     license="${LICENSE}" \
