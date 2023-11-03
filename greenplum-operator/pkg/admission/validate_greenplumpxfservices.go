@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	greenplumv1beta1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1beta1"
+	greenplumv1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,7 +14,7 @@ import (
 const UpgradePXFHelpMsg = "Cannot update GreenplumPXFService instance -- operator only supports updates to greenplumpxfservices " +
 	"at the latest version. Please update GreenplumPXFService to the latest version in order to make updates"
 
-func (h *Handler) validateGreenplumPXFService(ctx context.Context, oldPXF, newPXF *greenplumv1beta1.GreenplumPXFService) (allowed bool, result *metav1.Status) {
+func (h *Handler) validateGreenplumPXFService(ctx context.Context, oldPXF, newPXF *greenplumv1.GreenplumPXFService) (allowed bool, result *metav1.Status) {
 	isUpdate := false
 	if oldPXF != nil {
 		isUpdate = true

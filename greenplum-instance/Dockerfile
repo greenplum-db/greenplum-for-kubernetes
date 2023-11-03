@@ -22,7 +22,19 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     ./cmd/waitForKnownHosts
 
 # build greenplum-instance image from here
-FROM gcr.io/gp-kubernetes/ubuntu-gpdb-ent:${TAG_PREFIX}${GREENPLUM_VERSION}
+FROM rockylinux:8.7
+
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV GPHOME=/usr/local/greenplum-db
+ENV GOPATH=/usr/local/go
+ENV PATH=${PATH}:/usr/local/go/bin:/usr/local/greenplum-db/bin/
+
+RUN yum -y install passwd sudo
+RUN yum -y localinstall https://github.com/greenplum-db/gpdb/releases/download/7.0.0-beta.3/open-source-greenplum-db-7.0.0-beta.3-el8-x86_64.rpm
+RUN curl https://raw.githubusercontent.com/greenplum-db/gpdb/master/concourse/scripts/setup_gpadmin_user.bash > ./setup_gpadmin_user.bash
+RUN sed -i '/gpdb_src/d' ./setup_gpadmin_user.bash
+RUN chmod +x ./setup_gpadmin_user.bash \
+&& ./setup_gpadmin_user.bash
 
 # remove gppkg because it's misleading to users in the kubernetes environment
 RUN rm -f /usr/local/greenplum-db/bin/gppkg
@@ -64,9 +76,7 @@ ENV PXF_CONF=/etc/pxf
 RUN mkdir -p ${PXF_CONF} && chown -R gpadmin:gpadmin ${PXF_CONF}
 
 # Install tini
-RUN wget https://github.com/krallin/tini/releases/download/v0.19.0/tini_0.19.0-amd64.deb && \
-    dpkg -i tini_0.19.0-amd64.deb && \
-    rm tini_0.19.0-amd64.deb
+RUN yum -y localinstall https://github.com/krallin/tini/releases/download/v0.19.0/tini_0.19.0.rpm
 ENTRYPOINT ["/usr/bin/tini", "--"]
 
 USER gpadmin
@@ -81,13 +91,13 @@ WORKDIR /home/gpadmin
 RUN ln -s ${TOOLS_DIR} /home/gpadmin/tools
 
 # Initialize pxf directories; needs GPHOME set
-RUN /bin/bash -c 'source /usr/local/greenplum-db/greenplum_path.sh && /usr/local/pxf-gp6/bin/pxf init'
+# RUN /bin/bash -c 'source /usr/local/greenplum-db/greenplum_path.sh && /usr/local/pxf/bin/pxf init'
 
 EXPOSE 22
 
 ARG VERSION=dev
 ARG DATE=unknown
-ARG LICENSE="https://network.pivotal.io/legal_documents/vmware_eula"
+ARG LICENSE="https://www.apache.org/licenses/LICENSE-2.0"
 
 LABEL name="Greenplum for Kubernetes" \
     vendor="Pivotal Software" \

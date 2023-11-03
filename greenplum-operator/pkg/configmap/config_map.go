@@ -23,8 +23,8 @@ func ModifyConfigMap(cluster *greenplumv1.GreenplumCluster, config *corev1.Confi
 	standby := cluster.Spec.MasterAndStandby.Standby == "yes"
 
 	gucsList := []string{
-		"gp_resource_manager = group",
-		"gp_resource_group_memory_limit = 1.0",
+		// "gp_resource_manager = group",
+		// "gp_resource_group_memory_limit = 1.0",
 	}
 	gucs := strings.Join(gucsList, "\n")
 

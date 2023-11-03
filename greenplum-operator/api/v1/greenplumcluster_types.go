@@ -5,6 +5,7 @@
 package v1
 
 import (
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -17,6 +18,14 @@ type GreenplumClusterSpec struct {
 	MasterAndStandby GreenplumMasterAndStandbySpec `json:"masterAndStandby"`
 	Segments         GreenplumSegmentsSpec         `json:"segments"`
 	PXF              GreenplumPXFSpec              `json:"pxf,omitempty"`
+
+	// YES or NO, specify whether or not to deploy a load-balancer
+	// +kubebuilder:default=false
+	LoadBalancer bool `json:"loadBalancer,omitempty"`
+
+	// Optional Load Balancer Service Spec. if not provided, a default one will be used
+	// +optional
+	LoadBalancerServiceSpec *v1.ServiceSpec `json:"loadBalancerServiceSpec,omitempty"`
 }
 
 type GreenplumPodSpec struct {
@@ -26,12 +35,8 @@ type GreenplumPodSpec struct {
 	// Quantity expressed with an SI suffix, like 2Gi, 200m, 3.5, etc.
 	CPU resource.Quantity `json:"cpu,omitempty"`
 
-	// Name of storage class to use for statefulset PVs
-	// +kubebuilder:validation:MinLength=1
-	StorageClassName string `json:"storageClassName"`
-
-	// Quantity expressed with an SI suffix, like 2Gi, 200m, 3.5, etc.
-	Storage resource.Quantity `json:"storage"`
+	// List of PersistentVolumeClaims
+	PersistentVolumeClaims []PersistentVolumeClaim `json:"persistentVolumeClaims"`
 
 	// A set of node labels for scheduling pods
 	WorkerSelector map[string]string `json:"workerSelector,omitempty"`
@@ -40,6 +45,33 @@ type GreenplumPodSpec struct {
 	// +kubebuilder:default="no"
 	// +kubebuilder:validation:Pattern=`^(?:yes|Yes|YES|no|No|NO|)$`
 	AntiAffinity string `json:"antiAffinity,omitempty"`
+
+	// Name of scheduler to be used for statefulset pods
+	SchedulerName string `json:"schedulerName,omitempty"`
+
+	// ImagePullSecret to be used for pods
+	// +kubebuilder:default="regsecret"
+	ImagePullSecret string `json:"imagePullSecret,omitempty"`
+
+	// Optional PodSpec, for if you just want to get specific and manage all this yourself
+	//+optional
+	Spec v1.PodSpec `json:"spec,omitempty"`
+}
+
+type PersistentVolumeClaim struct {
+	// Name of the PV (will be prepended with the Cluster Name)
+	// +kubebuilder:validation:MinLength=1
+	Name string `json:"name"`
+
+	// Name of storage class to use for statefulset PVs
+	// +kubebuilder:validation:MinLength=1
+	StorageClassName string `json:"storageClassName"`
+
+	// Quantity expressed with an SI suffix, like 2Gi, 200m, 3.5, etc.
+	Storage resource.Quantity `json:"storage"`
+
+	// Path to mount on
+	MountPath string `json:"mountPath"`
 }
 
 type GreenplumMasterAndStandbySpec struct {

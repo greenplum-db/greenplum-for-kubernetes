@@ -8,8 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	greenplumv1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1"
-	greenplumv1beta1 "github.com/pivotal/greenplum-for-kubernetes/greenplum-operator/api/v1beta1"
-	admissionv1beta1 "k8s.io/api/admission/v1beta1"
+	admissionv1 "k8s.io/api/admission/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -61,24 +60,24 @@ var examplePXFObjectMeta = metav1.ObjectMeta{
 	Name:      "my-gp-pxf-instance",
 	Namespace: "test-ns",
 }
-var examplePXF = greenplumv1beta1.GreenplumPXFService{
+var examplePXF = greenplumv1.GreenplumPXFService{
 	TypeMeta: metav1.TypeMeta{
 		Kind:       "GreenplumPXFService",
-		APIVersion: "greenplum.pivotal.io/v1beta1",
+		APIVersion: "greenplum.pivotal.io/v1",
 	},
 	ObjectMeta: examplePXFObjectMeta,
-	Spec: greenplumv1beta1.GreenplumPXFServiceSpec{
+	Spec: greenplumv1.GreenplumPXFServiceSpec{
 		Replicas: 2,
 		CPU:      resource.MustParse("2"),
 		Memory:   resource.MustParse("2G"),
 	},
 }
 
-func postValidateReview(handler http.Handler, newObj, oldObj runtime.Object) (outputReview admissionv1beta1.AdmissionReview) {
+func postValidateReview(handler http.Handler, newObj, oldObj runtime.Object) (outputReview admissionv1.AdmissionReview) {
 	srv := httptest.NewServer(handler)
 	defer srv.Close()
 
-	var inputReview admissionv1beta1.AdmissionReview
+	var inputReview admissionv1.AdmissionReview
 	rb := SampleAdmissionReviewRequest()
 	if newObj != nil {
 		rb.NewObj(newObj)
